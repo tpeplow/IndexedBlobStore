@@ -1,0 +1,9 @@
+*obj/
+*debug/
+*release/
+_ReSharper*
+*.suo
+*.user
+packages
+buildTools
+build
