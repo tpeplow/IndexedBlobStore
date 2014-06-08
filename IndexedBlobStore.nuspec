@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <id>IndexedBlobStore</id>
+    <version>0.0.0</version>
+    <authors>Tom Peplow</authors>
+    <owners>Tom Peplow</owners>
+    <projectUrl>http://www.github.com</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Stores blobs unique blobs, enables blobs to be tagged for searching, caches blobs locally to reduce amount of downloads, can create duplicate copies of blobs for high load situations</description>
+    <tags></tags>
+    <dependencies>
+      <dependency id="WindowsAzure.Storage" version="3.2.0" />
+    </dependencies>
+  </metadata>
+  <files>
+	  <file src="src\IndexedBlobStore\bin\Release\IndexedBlobStore.dll" target="\lib\net40" />
+  </files>
+</package>
