@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Web;
 using Machine.Specifications;
 using Microsoft.WindowsAzure.Storage.Blob;
 
@@ -14,15 +13,36 @@ namespace IndexedBlobStore.Tests
             _downloadedBlob = Client.GetIndexedBlob(_importedBlob.FileKey);
         };
         It can_be_looked_up_by_key = () => _downloadedBlob.ShouldNotBeNull();
-        It should_use_the_MD5_of_the_source_blob_as_filekey = () => _importedBlob.FileKey.ShouldEqual(HttpUtility.UrlEncode(BlobToImport.Properties.ContentMD5));
         It can_download_contents = () => ReadStream(_downloadedBlob.OpenRead()).ShouldEqual("source");
         It should_set_the_size = () => _importedBlob.Length.ShouldEqual(6);
         It should_use_the_source_blob_name_as_filename = () => _importedBlob.FileName.ShouldEqual(BlobName);
+        It should_add_the_etag_to_the_filekey = () => _downloadedBlob.FileKey.ShouldContain(BlobToImport.Properties.ETag);
+        It should_add_the_container_to_the_filekey = () => _downloadedBlob.FileKey.ShouldContain(BlobToImport.Container.Name);
+        It should_add_the_blob_name_to_the_filekey = () => _downloadedBlob.FileKey.ShouldContain(BlobToImport.Name);
 
         static IIndexedBlob _importedBlob;
         static IReadonlyIndexedBlob _downloadedBlob;
     }
-    
+
+    public class when_importing_the_same_blob_again : ImportTests
+    {
+        Establish context = () => 
+        {
+            using (var importedBlob = Client.ImportBlob(BlobToImport))
+                importedBlob.Upload();
+        };
+
+        Because of = () => _exception = Catch.Exception(() =>
+        {
+            using (var importedBlob = Client.ImportBlob(BlobToImport))
+                importedBlob.Upload();
+        });
+
+        It should_throw_blob_already_exists_exception = () => _exception.ShouldBeOfExactType<BlobAlreadyExistsException>();
+
+        static Exception _exception; 
+    }
+
     public class when_importing_blob_that_does_not_exist_using_given_file_key : ImportTests
     {
         Establish context = () => _importedBlob = Client.ImportBlob("mykey", BlobToImport);

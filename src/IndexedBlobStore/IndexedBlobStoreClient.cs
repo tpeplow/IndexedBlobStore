@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Web;
@@ -57,10 +58,10 @@ namespace IndexedBlobStore
         {
             options = EnsureOptions(options);
             sourceBlob.FetchAttributes();
-            var fileKey = HttpUtility.UrlEncode(sourceBlob.Properties.ContentMD5);
+            var fileKey = string.Format("{0}-{1}", sourceBlob.Uri.LocalPath.Replace("/", "-"), sourceBlob.Properties.ETag);
             return ImportBlob(fileKey, sourceBlob, options);
         }
-
+        
         public IIndexedBlob ImportBlob(string fileKey, CloudBlockBlob sourceBlob, IndexedBlobStorageOptions options = null)
         {
             options = EnsureOptions(options);
