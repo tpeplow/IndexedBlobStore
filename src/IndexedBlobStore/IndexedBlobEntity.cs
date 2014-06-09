@@ -1,4 +1,6 @@
-﻿using Microsoft.WindowsAzure.Storage.Table;
+﻿using System.Web;
+using System.Web.UI.WebControls.WebParts;
+using Microsoft.WindowsAzure.Storage.Table;
 
 namespace IndexedBlobStore
 {
@@ -8,6 +10,7 @@ namespace IndexedBlobStore
         string FileKey { get; }
         bool Compressed { get; }
         long Length { get; }
+        string FileName { get; }
     }
 
     internal class IndexedBlobEntity : TableEntity, IIndexedBlobEntity
@@ -17,6 +20,7 @@ namespace IndexedBlobStore
         public string FileKey { get { return RowKey; }}
         public bool Compressed { get; set; }
         public long Length { get; set; }
+        public string FileName { get; set; }
     }
 
     internal class IndexedBlobTagEntity : TableEntity, IIndexedBlobEntity
@@ -26,5 +30,18 @@ namespace IndexedBlobStore
         public string FileKey { get { return RowKey; } }
         public bool Compressed { get; set; }
         public long Length { get; set; }
+        
+        public static ITableEntity Create(string fileKey, string tag, string fileName, int blobCount, bool compressed, long length)
+        {
+            return new IndexedBlobTagEntity
+            {
+                PartitionKey = tag,
+                RowKey = fileKey,
+                FileName = fileName,
+                BlobCount = blobCount,
+                Compressed = compressed,
+                Length = length,
+            };
+        }
     }
 }

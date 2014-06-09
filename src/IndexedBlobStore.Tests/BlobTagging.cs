@@ -10,11 +10,11 @@ namespace IndexedBlobStore.Tests
         Establish context = () => _blob = UploadUniqueBlob();
         Because of = () =>
         {
-            _blob.AddTag(new IndexedBlobTag("test tag", "file.txt"));
+            _blob.AddTag("test tag");
             _searchResult = Client.Find("test tag");
         };
         It should_find_blob_matching_tag = () => _searchResult.SingleOrDefault().ShouldNotBeNull();
-        It should_return_the_filename_associated_with_the_tag = () => _searchResult.Single().Tag.FileName.ShouldEqual("file.txt");
+        It should_return_the_filename_associated_with_the_tag = () => _searchResult.Single().Blob.FileName.ShouldEqual("unique.txt");
         It should_return_the_file = () => _searchResult.Single().Blob.FileKey.ShouldEqual(_blob.FileKey);
         It should_return_the_file_size = () => _searchResult.Single().Blob.Length.ShouldEqual(36);
 
@@ -27,8 +27,8 @@ namespace IndexedBlobStore.Tests
         Establish context = () => _blob = UploadUniqueBlob();
         Because of = () =>
         {
-            _blob.AddTag(new IndexedBlobTag("tag 1", "file.txt"));
-            _blob.AddTag(new IndexedBlobTag("tag 2", "file.txt"));
+            _blob.AddTag("tag 1");
+            _blob.AddTag("tag 2");
             _tag1Search = Client.Find("tag 1");
             _tag2Search = Client.Find("tag 2");
         };
@@ -49,10 +49,10 @@ namespace IndexedBlobStore.Tests
         Establish context = () =>
         {
             _blob = UploadUniqueBlob();
-            _blob.AddTag(new IndexedBlobTag("tom", "file.txt"));
+            _blob.AddTag("tom");
         };
 
-        Because of = () => _exception = Catch.Exception(() => _blob.AddTag(new IndexedBlobTag("tom", "file.txt")));
+        Because of = () => _exception = Catch.Exception(() => _blob.AddTag("tom"));
 
         It shold_throw_duplicate_tag_exception = () => _exception.ShouldBeOfExactType<DuplicateTagException>();
 
@@ -68,7 +68,7 @@ namespace IndexedBlobStore.Tests
         {
             foreach (var blob in _blobs)
             {
-                blob.AddTag(new IndexedBlobTag("multi blobs", "file.txt"));
+                blob.AddTag("multi blobs");
             }
             _searchResults = Client.Find("multi blobs");
         };

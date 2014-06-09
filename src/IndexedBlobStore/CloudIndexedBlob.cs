@@ -41,18 +41,11 @@ namespace IndexedBlobStore
         public long Length { get; protected set; }
         protected bool Compressed { get; set; }
         protected CloudIndexedBlobStore Store { get; private set; }
+        public string FileName { get; protected set; }
 
-        public void AddTag(IndexedBlobTag tag)
+        public void AddTag(string tag)
         {
-            var entity = new IndexedBlobTagEntity
-            {
-                PartitionKey = tag.Tag, 
-                RowKey = FileKey, 
-                FileName = tag.FileName,
-                BlobCount = _blobCount,
-                Compressed = Compressed,
-                Length = Length
-            };
+            var entity = IndexedBlobTagEntity.Create(FileKey, tag, FileName, _blobCount, Compressed, Length);
             try
             {
                 Store.Table.Execute(TableOperation.Insert(entity));
@@ -61,7 +54,7 @@ namespace IndexedBlobStore
             {
                 if (storageException.RequestInformation.HttpStatusCode == (int) HttpStatusCode.Conflict)
                 {
-                    throw new DuplicateTagException(tag.Tag, FileKey);
+                    throw new DuplicateTagException(tag, FileKey);
                 }
                 throw;
             }
@@ -76,7 +69,8 @@ namespace IndexedBlobStore
                 BlobUri = Blob.Uri.ToString(),
                 BlobCount = _blobCount,
                 Compressed = Compressed,
-                Length = Length
+                Length = Length,
+                FileName = FileName
             };
             try
             {

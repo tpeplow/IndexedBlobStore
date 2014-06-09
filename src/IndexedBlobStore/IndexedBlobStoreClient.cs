@@ -34,22 +34,23 @@ namespace IndexedBlobStore
             _store.Cache.Delete();
         }
 
-        public IIndexedBlob CreateIndexedBlob(Stream stream, IndexedBlobStorageOptions options = null)
+        public IIndexedBlob CreateIndexedBlob(string fileName, Stream stream, IndexedBlobStorageOptions options = null)
         {
             options = EnsureOptions(options);
 
             var key = options.FileKeyGenerator.GenerateKey(stream);
+            key = string.Format("{0}-{1}", fileName, key);
 
-            return CreateIndexedBlob(key, stream, options);
+            return CreateIndexedBlob(fileName, key, stream, options);
         }
 
-        public IIndexedBlob CreateIndexedBlob(string fileKey, Stream stream, IndexedBlobStorageOptions options = null)
+        public IIndexedBlob CreateIndexedBlob(string fileName, string fileKey, Stream stream, IndexedBlobStorageOptions options = null)
         {
             options = EnsureOptions(options);
             
             var indexRecord = LookupIndexedBlob(fileKey);
 
-            return new UploadableIndexedBlob(stream, fileKey, indexRecord, options, _store);
+            return new UploadableIndexedBlob(fileName, stream, fileKey, indexRecord, options, _store);
         }
 
         public IIndexedBlob ImportBlob(CloudBlockBlob sourceBlob, IndexedBlobStorageOptions options = null)
@@ -92,7 +93,7 @@ namespace IndexedBlobStore
         {
             var query = new TableQuery<IndexedBlobTagEntity>().Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, tag));
             var entities = _store.Table.ExecuteQuery(query);
-            return entities.Select(x => new TaggedIndexedBlob(new CloudReadonlyIndexedBlob(x, _store), new IndexedBlobTag(x.PartitionKey, x.FileName)));
+            return entities.Select(x => new TaggedIndexedBlob(new CloudReadonlyIndexedBlob(x, _store), x.PartitionKey));
         }
     }
 }

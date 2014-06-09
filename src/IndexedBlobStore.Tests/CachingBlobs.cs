@@ -36,7 +36,7 @@ namespace IndexedBlobStore.Tests
         {
             Establish context = () =>
             {
-                _blob = Client.CreateIndexedBlob(CreateStream("not finished"));
+                _blob = Client.CreateIndexedBlob("file", CreateStream("not finished"));
                 _blob.Upload();
                 // don't dispose to make it think we're still writing the blob...
             };
@@ -55,12 +55,12 @@ namespace IndexedBlobStore.Tests
                 Cache.Delete();
                 Cache.CreateIfNotExists();
 
-                using (var blob = Client.CreateIndexedBlob(CreateStream("content that will be deleted")))
+                using (var blob = Client.CreateIndexedBlob("file", CreateStream("content that will be deleted")))
                 {
                     blob.Upload();
                     _oldestKey = blob.FileKey;
                 };
-                using (var blob = Client.CreateIndexedBlob(CreateStream("content that should be kept")))
+                using (var blob = Client.CreateIndexedBlob("file", CreateStream("content that should be kept")))
                 {
                     blob.Upload();
                     _shouldBeKeptKey = blob.FileKey;
@@ -70,7 +70,7 @@ namespace IndexedBlobStore.Tests
             Because of = () =>
             {
                 var content = Enumerable.Range(0, 994).Select(i => "a").Aggregate((x, x1) => x + x1);
-                using (var blob = Client.CreateIndexedBlob(CreateStream(content)))
+                using (var blob = Client.CreateIndexedBlob("file", CreateStream(content)))
                 {
                     blob.Upload();
                     _bigItem = blob.FileKey;
@@ -99,7 +99,7 @@ namespace IndexedBlobStore.Tests
             Because of = () =>
             {
                 var content = Enumerable.Range(0, 1025).Select(i => "a").Aggregate((x, x1) => x + x1);
-                using (var blob = Client.CreateIndexedBlob(CreateStream(content)))
+                using (var blob = Client.CreateIndexedBlob("file", CreateStream(content)))
                 {
                     blob.Upload();
                     _key = blob.FileKey;
@@ -115,12 +115,12 @@ namespace IndexedBlobStore.Tests
         {
             Establish context = () =>
             {
-                using (var blob = Client.CreateIndexedBlob(CreateStream("content that will be deleted 2")))
+                using (var blob = Client.CreateIndexedBlob("file", CreateStream("content that will be deleted 2")))
                 {
                     blob.Upload();
                     _blob1 = blob.FileKey;
                 };
-                using (var blob = Client.CreateIndexedBlob(CreateStream("content that should be kept 2")))
+                using (var blob = Client.CreateIndexedBlob("file", CreateStream("content that should be kept 2")))
                 {
                     blob.Upload();
                     _blob2 = blob.FileKey;
@@ -135,7 +135,7 @@ namespace IndexedBlobStore.Tests
                     Client.GetIndexedBlob(_blob2).OpenRead()
                 };
                 var content = Enumerable.Range(0, 994).Select(i => "b").Aggregate((x, x1) => x + x1);
-                using (var blob = Client.CreateIndexedBlob(CreateStream(content)))
+                using (var blob = Client.CreateIndexedBlob("file", CreateStream(content)))
                 {
                     blob.Upload();
                     _bigItem = blob.FileKey;

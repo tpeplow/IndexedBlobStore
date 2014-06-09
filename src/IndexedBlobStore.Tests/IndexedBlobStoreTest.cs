@@ -30,7 +30,7 @@ namespace IndexedBlobStore.Tests
 
         protected static IIndexedBlob UploadUniqueBlob()
         {
-            using (var blob = Client.CreateIndexedBlob(CreateStream(Guid.NewGuid().ToString())))
+            using (var blob = Client.CreateIndexedBlob("unique.txt", CreateStream(Guid.NewGuid().ToString())))
             {
                 blob.Upload();
                 return blob;

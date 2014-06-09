@@ -7,5 +7,6 @@ namespace IndexedBlobStore
         Stream OpenRead(IndexedBlobReadOptions options = null);
         string FileKey { get; }
         long Length { get; }
+        string FileName { get; }
     }
 }

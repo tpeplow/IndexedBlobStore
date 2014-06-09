@@ -9,12 +9,13 @@ namespace IndexedBlobStore
     {
         readonly Stream _stream;
 
-        public UploadableIndexedBlob(Stream stream, string fileKey, IndexedBlobEntity indexedBlobEntity,
+        public UploadableIndexedBlob(string fileName, Stream stream, string fileKey, IndexedBlobEntity indexedBlobEntity,
             IndexedBlobStorageOptions options, CloudIndexedBlobStore cloudIndexedBlobStore)
             : base(fileKey, indexedBlobEntity, options, cloudIndexedBlobStore)
         {
             Length = stream.Length;
             _stream = cloudIndexedBlobStore.Cache.Add(fileKey, stream, Length);
+            FileName = fileName;
         }
 
         protected override void PerformUpload()

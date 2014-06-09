@@ -6,8 +6,9 @@ namespace IndexedBlobStore
     {
         void Upload();
         string FileKey { get; }
+        string FileName { get; }
         bool Exists { get; }
         long Length { get; }
-        void AddTag(IndexedBlobTag tag);
+        void AddTag(string tag);
     }
 }

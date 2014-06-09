@@ -10,7 +10,7 @@ namespace IndexedBlobStore.Tests
         {
             _contents = Guid.NewGuid().ToString();
             _contentsStream = CreateStream(_contents);
-            _uploadedBlob = Client.CreateIndexedBlob(_contentsStream);
+            _uploadedBlob = Client.CreateIndexedBlob("file", _contentsStream);
         };
         Because of = () =>
         {
@@ -19,8 +19,10 @@ namespace IndexedBlobStore.Tests
         };
         It can_be_looked_up_by_key = () => _downloadedBlob.ShouldNotBeNull();
         It can_download_contents = () => ReadStream(_downloadedBlob.OpenRead()).ShouldEqual(_contents);
-        It should_use_SHA1_as_key = () => _uploadedBlob.FileKey.ShouldEqual(new SHA1FileKeyGenerator().GenerateKey(_contentsStream));
+        It should_start_the_key_with_the_filename = () => _uploadedBlob.FileKey.ShouldStartWith("file-");
+        It should_include_sha1_as_the_key = () => _uploadedBlob.FileKey.ShouldEndWith(new SHA1FileKeyGenerator().GenerateKey(_contentsStream));
         It should_store_the_length = () => _uploadedBlob.Length.ShouldEqual(36);
+        It should_store_the_file_name = () => _downloadedBlob.FileName.ShouldEqual("file");
 
         Cleanup clean = () => _uploadedBlob.Dispose();
 
@@ -34,12 +36,12 @@ namespace IndexedBlobStore.Tests
     {
         Establish context = () =>
         {
-            using (var blob = Client.CreateIndexedBlob(CreateStream(_content)))
+            using (var blob = Client.CreateIndexedBlob("file", CreateStream(_content)))
                 blob.Upload();
         };
         Because of = () => _exception = Catch.Exception(() =>
         {
-            _reference = Client.CreateIndexedBlob(CreateStream(_content));
+            _reference = Client.CreateIndexedBlob("file", CreateStream(_content));
             _reference.Upload();
         });
         It should_indicate_it_already_exists = () => _reference.Exists.ShouldBeTrue();
@@ -54,7 +56,7 @@ namespace IndexedBlobStore.Tests
     {
         Because of = () =>
         {
-            using (var blob = Client.CreateIndexedBlob("imported key", CreateStream("contents")))
+            using (var blob = Client.CreateIndexedBlob("file", "imported key", CreateStream("contents")))
                 blob.Upload();
             _reference = Client.GetIndexedBlob("imported key");
         };
@@ -71,7 +73,7 @@ namespace IndexedBlobStore.Tests
         {
             TestContext.Current.CacheSettings.Enabled = false;
             using (
-                var blob = Client.CreateIndexedBlob(CreateStream(_expectedContent),
+                var blob = Client.CreateIndexedBlob("file", CreateStream(_expectedContent),
                     new IndexedBlobStorageOptions {AdditionalBlobsForLoadBalancing = 2}))
             {
                 blob.Upload();

@@ -54,5 +54,10 @@ namespace IndexedBlobStore
         }
 
         public long Length { get; private set; }
+
+        public string FileName
+        {
+            get { return _entity.FileName; }
+        }
     }
 }
