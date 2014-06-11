@@ -77,6 +77,7 @@
     <Compile Include="AllTestSetup.cs" />
     <Compile Include="BlobBehaviorAssertions.cs" />
     <Compile Include="CachingBlobs.cs" />
+    <Compile Include="CrossAccountImports.cs" />
     <Compile Include="ImportingBlobs.cs" />
     <Compile Include="IndexedBlobStoreTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

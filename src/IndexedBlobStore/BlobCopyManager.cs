@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using Microsoft.WindowsAzure.Storage.Blob;
 
@@ -10,8 +11,27 @@ namespace IndexedBlobStore
 
         public void Start(CloudBlockBlob target, CloudBlockBlob source)
         {
+            source = EnsureAccessToSource(target, source);
             var copyId = target.StartCopyFromBlob(source);
+
             _blobsToCopy.Add(new BlobCopyProgress(target, source, copyId));
+        }
+
+        static CloudBlockBlob EnsureAccessToSource(CloudBlockBlob target, CloudBlockBlob source)
+        {
+            if (source.ServiceClient.Credentials.IsSAS)
+                return source;
+
+            if (target.ServiceClient.Credentials.AccountName == source.ServiceClient.Credentials.AccountName)
+                return source;
+
+            var sas = source.GetSharedAccessSignature(new SharedAccessBlobPolicy
+            {
+                Permissions = SharedAccessBlobPermissions.Read,
+                SharedAccessExpiryTime = DateTime.UtcNow.AddDays(14),
+            });
+
+            return new CloudBlockBlob(new Uri(source.Uri + sas));
         }
 
         public void WaitForCompletion()

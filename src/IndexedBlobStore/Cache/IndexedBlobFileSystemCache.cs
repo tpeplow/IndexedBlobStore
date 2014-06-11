@@ -29,7 +29,10 @@ namespace IndexedBlobStore.Cache
             try
             {
                 _lock.EnterWriteLock();
-                Directory.Delete(_cacheSettings.CacheDirectory, true);
+
+                if (Directory.Exists(_cacheSettings.CacheDirectory))
+                    Directory.Delete(_cacheSettings.CacheDirectory, true);
+
                 _cachedItems = new Dictionary<string, CachedItem>();
                 _cacheSize = 0;
             }
