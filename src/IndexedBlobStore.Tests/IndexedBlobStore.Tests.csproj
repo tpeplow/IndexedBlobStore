@@ -81,6 +81,7 @@
     <Compile Include="IndexedBlobStoreTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BlobTagging.cs" />
+    <Compile Include="ReliableOperationTests.cs" />
     <Compile Include="UploadingBlobs.cs" />
     <Compile Include="TestContext.cs" />
   </ItemGroup>

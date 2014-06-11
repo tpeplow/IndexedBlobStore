@@ -22,11 +22,14 @@ namespace IndexedBlobStore
         {
             try
             {
-                _stream.EnsureAtStart();
-                using (var stream = GetBlobStream())
+                ReliableCloudOperations.UploadBlob(() =>
                 {
-                    _stream.CopyTo(stream);
-                }
+                    _stream.EnsureAtStart();
+                    using (var stream = GetBlobStream())
+                    {
+                        _stream.CopyTo(stream);
+                    }
+                });
             }
             catch (StorageException storageException)
             {
