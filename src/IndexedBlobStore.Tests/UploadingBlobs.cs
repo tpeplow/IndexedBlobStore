@@ -24,6 +24,7 @@ namespace IndexedBlobStore.Tests
         It should_include_sha1_as_the_key = () => _uploadedBlob.FileKey.ShouldEndWith(new SHA1FileKeyGenerator().GenerateKey(_contentsStream));
         It should_store_the_length = () => _uploadedBlob.Length.ShouldEqual(36);
         It should_store_the_file_name = () => _downloadedBlob.FileName.ShouldEqual("file");
+        It should_have_an_empty_properties_dictionary = () => _downloadedBlob.Properties.Count.ShouldEqual(0);
 
         Cleanup clean = () => _uploadedBlob.Dispose();
 
