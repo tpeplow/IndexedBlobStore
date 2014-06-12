@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 
 namespace IndexedBlobStore
 {
@@ -8,5 +9,6 @@ namespace IndexedBlobStore
         string FileKey { get; }
         long Length { get; }
         string FileName { get; }
+        Dictionary<string, string> Properties { get; } 
     }
 }

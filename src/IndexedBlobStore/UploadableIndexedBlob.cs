@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.IO.Compression;
 using System.Net;
 using Microsoft.WindowsAzure.Storage;
@@ -9,9 +10,8 @@ namespace IndexedBlobStore
     {
         readonly Stream _stream;
 
-        public UploadableIndexedBlob(string fileName, Stream stream, string fileKey, IndexedBlobEntity indexedBlobEntity,
-            IndexedBlobStorageOptions options, CloudIndexedBlobStore cloudIndexedBlobStore)
-            : base(fileKey, indexedBlobEntity, options, cloudIndexedBlobStore)
+        public UploadableIndexedBlob(string fileName, Stream stream, string fileKey, IndexedBlobEntity indexedBlobEntity, IndexedBlobStorageOptions options, CloudIndexedBlobStore cloudIndexedBlobStore, Dictionary<string, string> properties)
+            : base(fileKey, indexedBlobEntity, options, cloudIndexedBlobStore, properties)
         {
             Length = stream.Length;
             _stream = cloudIndexedBlobStore.Cache.Add(fileKey, stream, Length);
@@ -33,7 +33,7 @@ namespace IndexedBlobStore
             }
             catch (StorageException storageException)
             {
-                if (storageException.RequestInformation.HttpStatusCode != (int) HttpStatusCode.PreconditionFailed)
+                if (storageException.RequestInformation.HttpStatusCode != (int)HttpStatusCode.PreconditionFailed)
                     throw;
             }
         }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Web.UI.WebControls;
 using System.Xml.Linq;
+using IndexedBlobStore.Cache;
 using Machine.Specifications;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
@@ -19,12 +20,12 @@ namespace IndexedBlobStore.Tests
             _containers = new List<CloudBlobContainer>();
             var config = XDocument.Load(@"c:\projects\StorageConfig.xml");
             _accounts = (from account in config.Root.Elements("account")
-                        select new
-                        {
-                            Id = account.Attribute("id").Value,
-                            Account = account.Attribute("name").Value,
-                            Key = account.Attribute("key").Value
-                        }).ToDictionary(x => x.Id, x => new CloudStorageAccount(new StorageCredentials(x.Account, x.Key), true));
+                         select new
+                         {
+                             Id = account.Attribute("id").Value,
+                             Account = account.Attribute("name").Value,
+                             Key = account.Attribute("key").Value
+                         }).ToDictionary(x => x.Id, x => new CloudStorageAccount(new StorageCredentials(x.Account, x.Key), true));
 
             var blobClient = _accounts["acc1"].CreateCloudBlobClient();
             var container = blobClient.GetContainerReference("a" + Guid.NewGuid().ToString("N"));
@@ -34,7 +35,11 @@ namespace IndexedBlobStore.Tests
             _containers.Add(container);
 
             var factory = new IndexedBlobStoreFactory(_accounts["acc2"]);
-            _store = factory.Create("a" + Guid.NewGuid().ToString("N"));
+            _store = factory.Create("a" + Guid.NewGuid().ToString("N"),
+                new IndexedBlobLocalCacheSettings
+                {
+                    CacheDirectory = Path.Combine(Path.GetTempPath(), "IndexedBlobStoreCache2")
+                });
         };
 
         Because of = () =>

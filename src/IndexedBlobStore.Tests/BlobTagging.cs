@@ -7,7 +7,7 @@ namespace IndexedBlobStore.Tests
 {
     public class when_tagging_a_blob : IndexedBlobStoreTest
     {
-        Establish context = () => _blob = UploadUniqueBlob();
+        Establish context = () => _blob = UploadUniqueBlob(new Dictionary<string, string> { { "hello", "world" }});
         Because of = () =>
         {
             _blob.AddTag("test tag");
@@ -17,6 +17,7 @@ namespace IndexedBlobStore.Tests
         It should_return_the_filename_associated_with_the_tag = () => _searchResult.Single().Blob.FileName.ShouldEqual("unique.txt");
         It should_return_the_file = () => _searchResult.Single().Blob.FileKey.ShouldEqual(_blob.FileKey);
         It should_return_the_file_size = () => _searchResult.Single().Blob.Length.ShouldEqual(36);
+        It should_return_properties = () => _searchResult.Single().Blob.Properties["hello"].ShouldEqual("world");
 
         static IIndexedBlob _blob;
         static IEnumerable<TaggedIndexedBlob> _searchResult;

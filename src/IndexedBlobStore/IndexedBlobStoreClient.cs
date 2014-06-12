@@ -35,40 +35,40 @@ namespace IndexedBlobStore
             _store.Cache.Delete();
         }
 
-        public IIndexedBlob CreateIndexedBlob(string fileName, Stream stream, IndexedBlobStorageOptions options = null)
+        public IIndexedBlob CreateIndexedBlob(string fileName, Stream stream, IndexedBlobStorageOptions options = null, Dictionary<string, string> properties = null)
         {
             options = EnsureOptions(options);
 
             var key = options.FileKeyGenerator.GenerateKey(stream);
             key = string.Format("{0}-{1}", fileName, key);
 
-            return CreateIndexedBlob(fileName, key, stream, options);
+            return CreateIndexedBlob(fileName, key, stream, options, properties);
         }
 
-        public IIndexedBlob CreateIndexedBlob(string fileName, string fileKey, Stream stream, IndexedBlobStorageOptions options = null)
+        public IIndexedBlob CreateIndexedBlob(string fileName, string fileKey, Stream stream, IndexedBlobStorageOptions options = null, Dictionary<string, string> properties = null)
         {
             options = EnsureOptions(options);
             
             var indexRecord = LookupIndexedBlob(fileKey);
 
-            return new UploadableIndexedBlob(fileName, stream, fileKey, indexRecord, options, _store);
+            return new UploadableIndexedBlob(fileName, stream, fileKey, indexRecord, options, _store, properties);
         }
 
-        public IIndexedBlob ImportBlob(CloudBlockBlob sourceBlob, IndexedBlobStorageOptions options = null)
+        public IIndexedBlob ImportBlob(CloudBlockBlob sourceBlob, IndexedBlobStorageOptions options = null, Dictionary<string, string> properties = null)
         {
             options = EnsureOptions(options);
             sourceBlob.FetchAttributes();
             var fileKey = string.Format("{0}-{1}", sourceBlob.Uri.LocalPath.Replace("/", "-"), sourceBlob.Properties.ETag);
-            return ImportBlob(fileKey, sourceBlob, options);
+            return ImportBlob(fileKey, sourceBlob, options, properties);
         }
-        
-        public IIndexedBlob ImportBlob(string fileKey, CloudBlockBlob sourceBlob, IndexedBlobStorageOptions options = null)
+
+        public IIndexedBlob ImportBlob(string fileKey, CloudBlockBlob sourceBlob, IndexedBlobStorageOptions options = null, Dictionary<string, string> properties = null)
         {
             options = EnsureOptions(options);
             
             var indexRecord = LookupIndexedBlob(fileKey);
             
-            return new CopyableIndexedBlob(sourceBlob, fileKey, indexRecord, options, _store);
+            return new CopyableIndexedBlob(sourceBlob, fileKey, indexRecord, options, _store, properties);
         }
 
         public IReadonlyIndexedBlob GetIndexedBlob(string fileKey)

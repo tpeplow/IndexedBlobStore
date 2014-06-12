@@ -1,4 +1,5 @@
-﻿using Microsoft.WindowsAzure.Storage.Blob;
+﻿using System.Collections.Generic;
+using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace IndexedBlobStore
 {
@@ -6,8 +7,8 @@ namespace IndexedBlobStore
     {
         readonly CloudBlockBlob _sourceBlob;
 
-        public CopyableIndexedBlob(CloudBlockBlob sourceBlob, string fileKey, IndexedBlobEntity entity, IndexedBlobStorageOptions options, CloudIndexedBlobStore cloudIndexedBlobStore)
-            : base(fileKey, entity, options, cloudIndexedBlobStore)
+        public CopyableIndexedBlob(CloudBlockBlob sourceBlob, string fileKey, IndexedBlobEntity entity, IndexedBlobStorageOptions options, CloudIndexedBlobStore cloudIndexedBlobStore, Dictionary<string, string> properties)
+            : base(fileKey, entity, options, cloudIndexedBlobStore, properties)
         {
             _sourceBlob = sourceBlob;
             if (sourceBlob.Properties.Length == 0)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Machine.Specifications;
 using Microsoft.WindowsAzure.Storage.Blob;
 
@@ -24,9 +25,23 @@ namespace IndexedBlobStore.Tests
         static IReadonlyIndexedBlob _downloadedBlob;
     }
 
+    public class when_importing_blob_that_does_not_exist_with_properties : ImportTests
+    {
+        Establish context = () => _importedBlob = Client.ImportBlob(BlobToImport, properties: new Dictionary<string, string> { { "name", "dave" } });
+        Because of = () =>
+        {
+            _importedBlob.Upload();
+            _downloadedBlob = Client.GetIndexedBlob(_importedBlob.FileKey);
+        };
+        It should_include_properties = () => _downloadedBlob.Properties["name"].ShouldEqual("dave");
+
+        static IIndexedBlob _importedBlob;
+        static IReadonlyIndexedBlob _downloadedBlob;
+    }
+
     public class when_importing_the_same_blob_again : ImportTests
     {
-        Establish context = () => 
+        Establish context = () =>
         {
             using (var importedBlob = Client.ImportBlob(BlobToImport))
                 importedBlob.Upload();
@@ -40,7 +55,7 @@ namespace IndexedBlobStore.Tests
 
         It should_throw_blob_already_exists_exception = () => _exception.ShouldBeOfExactType<BlobAlreadyExistsException>();
 
-        static Exception _exception; 
+        static Exception _exception;
     }
 
     public class when_importing_blob_that_does_not_exist_using_given_file_key : ImportTests

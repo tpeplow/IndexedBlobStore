@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using IndexedBlobStore.Cache;
 
@@ -28,9 +29,9 @@ namespace IndexedBlobStore.Tests
             }
         }
 
-        protected static IIndexedBlob UploadUniqueBlob()
+        protected static IIndexedBlob UploadUniqueBlob(Dictionary<string, string> properties = null)
         {
-            using (var blob = Client.CreateIndexedBlob("unique.txt", CreateStream(Guid.NewGuid().ToString())))
+            using (var blob = Client.CreateIndexedBlob("unique.txt", CreateStream(Guid.NewGuid().ToString()), properties: properties))
             {
                 blob.Upload();
                 return blob;

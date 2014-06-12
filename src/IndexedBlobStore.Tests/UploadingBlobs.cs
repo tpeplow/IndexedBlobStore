@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Machine.Specifications;
 
@@ -30,6 +31,36 @@ namespace IndexedBlobStore.Tests
         static IReadonlyIndexedBlob _downloadedBlob;
         static Stream _contentsStream;
         static string _contents;
+    }
+
+    public class when_uploading_blob_with_properties : IndexedBlobStoreTest
+    {
+        Because of = () =>
+        {
+            using (var blob = Client.CreateIndexedBlob("a file.txt", "blob with properties", CreateStream("contents with properties"), properties: new Dictionary<string, string> {{"Hello", "World"}}))
+            {
+                blob.Upload();
+            }
+            _downloadedBlob = Client.GetIndexedBlob("blob with properties");
+        };
+
+        It should_contain_the_properties = () => _downloadedBlob.Properties["Hello"].ShouldEqual("World");
+        It should_fail_to_upload_if_you_only_change_propertie = () =>
+        {
+            var exception = Catch.Exception(() =>
+            {
+                using (
+                    var blob = Client.CreateIndexedBlob("a file.txt", "blob with properties",
+                        CreateStream("contents with properties"),
+                        properties: new Dictionary<string, string> {{"Hello", "World"}}))
+                {
+                    blob.Upload();
+                }
+            });
+            exception.ShouldBeOfExactType<BlobAlreadyExistsException>();
+        };
+        
+        static IReadonlyIndexedBlob _downloadedBlob;
     }
 
     public class when_uploading_blob_that_already_exists : IndexedBlobStoreTest

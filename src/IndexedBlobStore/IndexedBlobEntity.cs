@@ -11,6 +11,7 @@ namespace IndexedBlobStore
         bool Compressed { get; }
         long Length { get; }
         string FileName { get; }
+        int PropertyCount { get; }
     }
 
     internal class IndexedBlobEntity : TableEntity, IIndexedBlobEntity
@@ -21,6 +22,7 @@ namespace IndexedBlobStore
         public bool Compressed { get; set; }
         public long Length { get; set; }
         public string FileName { get; set; }
+        public int PropertyCount { get; set; }
     }
 
     internal class IndexedBlobTagEntity : TableEntity, IIndexedBlobEntity
@@ -30,8 +32,9 @@ namespace IndexedBlobStore
         public string FileKey { get { return RowKey; } }
         public bool Compressed { get; set; }
         public long Length { get; set; }
-        
-        public static ITableEntity Create(string fileKey, string tag, string fileName, int blobCount, bool compressed, long length)
+        public int PropertyCount { get; set; }
+
+        public static ITableEntity Create(string fileKey, string tag, string fileName, int blobCount, bool compressed, long length, int propertyCount)
         {
             return new IndexedBlobTagEntity
             {
@@ -41,6 +44,7 @@ namespace IndexedBlobStore
                 BlobCount = blobCount,
                 Compressed = compressed,
                 Length = length,
+                PropertyCount = propertyCount
             };
         }
     }

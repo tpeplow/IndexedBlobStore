@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Net;
+using System.Text;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Table;
@@ -7,15 +9,19 @@ namespace IndexedBlobStore
 {
     internal abstract class CloudIndexedBlob : IIndexedBlob
     {
+        readonly Dictionary<string, string> _properties;
         readonly int _blobCount;
+        readonly int _propertyCount;
 
-        protected CloudIndexedBlob(string fileKey, IndexedBlobEntity entity, IndexedBlobStorageOptions options, CloudIndexedBlobStore cloudIndexedBlobStore)
+        protected CloudIndexedBlob(string fileKey, IndexedBlobEntity entity, IndexedBlobStorageOptions options, CloudIndexedBlobStore cloudIndexedBlobStore, Dictionary<string, string> properties)
         {
+            _properties = properties != null ? new Dictionary<string, string>(properties) : new Dictionary<string, string>();
             FileKey = fileKey;
             Exists = entity != null;
             _blobCount = entity != null ? entity.BlobCount : options.AdditionalBlobsForLoadBalancing + 1;
             Compressed = entity != null ? entity.Compressed : options.Compress;
             Length = entity != null ? entity.Length : 0;
+            _propertyCount = entity != null ? entity.PropertyCount : _properties.Count;
             Options = options;
             Store = cloudIndexedBlobStore;
         }
@@ -45,7 +51,7 @@ namespace IndexedBlobStore
 
         public void AddTag(string tag)
         {
-            var entity = IndexedBlobTagEntity.Create(FileKey, tag, FileName, _blobCount, Compressed, Length);
+            var entity = IndexedBlobTagEntity.Create(FileKey, tag, FileName, _blobCount, Compressed, Length, _propertyCount);
             try
             {
                 Store.Table.Execute(TableOperation.Insert(entity));
@@ -70,11 +76,20 @@ namespace IndexedBlobStore
                 BlobCount = _blobCount,
                 Compressed = Compressed,
                 Length = Length,
-                FileName = FileName
+                FileName = FileName,
+                PropertyCount = _propertyCount
             };
             try
             {
-                Store.Table.Execute(TableOperation.Insert(indexRecord));
+                var batch = new TableBatchOperation
+                {
+                    TableOperation.Insert(indexRecord)
+                };
+                foreach (var property in _properties)
+                {
+                    batch.Add(TableOperation.Insert(new IndexedBlobProperty(FileKey, property.Key, property.Value)));
+                }
+                Store.Table.ExecuteBatch(batch);
             }
             catch (StorageException storageException)
             {
