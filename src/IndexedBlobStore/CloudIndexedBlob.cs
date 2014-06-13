@@ -32,6 +32,7 @@ namespace IndexedBlobStore
 
             var blobName = string.Format("{0}-0", FileKey);
             Blob = Store.Container.GetBlockBlobReference(blobName);
+            Blob.StreamWriteSizeInBytes = Options.StreamWriteSizeInBytes;
             PerformUpload();
             DuplicateForLoadBalancing();
             InsertIndex();

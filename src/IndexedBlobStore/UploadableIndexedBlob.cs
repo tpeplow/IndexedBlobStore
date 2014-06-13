@@ -26,7 +26,7 @@ namespace IndexedBlobStore
                 ReliableCloudOperations.UploadBlob(() =>
                 {
                     _stream.EnsureAtStart();
-                    Blob.UploadFromStream(_stream);
+                    Blob.UploadFromStream(_stream, options: Options.BlobRequestOptions);
                 });
             }
             catch (StorageException storageException)

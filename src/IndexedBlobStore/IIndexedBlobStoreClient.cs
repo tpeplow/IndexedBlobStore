@@ -7,6 +7,7 @@ namespace IndexedBlobStore
     public interface IIndexedBlobStoreClient
     {
         IndexedBlobStorageOptions DefaultStorageOptions { get; set; }
+        IndexedBlobReadOptions DefaultReadOptions { get; set; }
         IIndexedBlob CreateIndexedBlob(string fileName, Stream stream, IndexedBlobStorageOptions options = null, Dictionary<string, string> properties = null);
         IIndexedBlob CreateIndexedBlob(string fileName, string fileKey, Stream stream, IndexedBlobStorageOptions options = null, Dictionary<string, string> properties = null);
         IIndexedBlob ImportBlob(CloudBlockBlob sourceBlob, IndexedBlobStorageOptions options = null, Dictionary<string, string> properties = null);

@@ -12,12 +12,14 @@ namespace IndexedBlobStore
         readonly Random _random;
         readonly IIndexedBlobEntity _entity;
         readonly CloudIndexedBlobStore _store;
+        readonly IndexedBlobReadOptions _defaultReadOptions;
         readonly Lazy<Dictionary<string, string>> _properties; 
 
-        public CloudReadonlyIndexedBlob(IIndexedBlobEntity entity, CloudIndexedBlobStore store)
+        public CloudReadonlyIndexedBlob(IIndexedBlobEntity entity, CloudIndexedBlobStore store, IndexedBlobReadOptions defaultReadOptions)
         {
             _entity = entity;
             _store = store;
+            _defaultReadOptions = defaultReadOptions;
             _random = new Random();
             Length = entity.Length;
             _properties = new Lazy<Dictionary<string, string>>(LoadProperties);
@@ -32,7 +34,7 @@ namespace IndexedBlobStore
             }
 
             if (options == null)
-                options = new IndexedBlobReadOptions();
+                options = _defaultReadOptions;
 
             var index = 0;
             if (options.UseSpecificLoadBalancedBlob.HasValue)
@@ -44,7 +46,9 @@ namespace IndexedBlobStore
                 index = _random.Next(_entity.BlobCount);
             }
             var blob = _store.Container.GetBlockBlobReference(string.Format("{0}-{1}", FileKey, index));
-            stream = blob.OpenRead();
+            blob.StreamMinimumReadSizeInBytes = options.StreamMinimumReadSizeInBytes;
+
+            stream = blob.OpenRead(options: options.BlobRequestOptions);
             
             return _store.Cache.Add(FileKey, stream, _entity.Length);
         }

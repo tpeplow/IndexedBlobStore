@@ -12,20 +12,25 @@ namespace IndexedBlobStore
     {
         readonly CloudIndexedBlobStore _store;
         IndexedBlobStorageOptions _defaultStorageOptions;
+        IndexedBlobReadOptions _defaultReadOptions;
 
         internal IndexedBlobStoreClient(CloudIndexedBlobStore store)
         {
             _store = store;
             DefaultStorageOptions = new IndexedBlobStorageOptions();
+            DefaultReadOptions = new IndexedBlobReadOptions();
         }
 
         public IndexedBlobStorageOptions DefaultStorageOptions
         {
             get { return _defaultStorageOptions; }
-            set 
-            {
-                _defaultStorageOptions = value ?? new IndexedBlobStorageOptions();
-            }
+            set { _defaultStorageOptions = value ?? new IndexedBlobStorageOptions(); }
+        }
+
+        public IndexedBlobReadOptions DefaultReadOptions
+        {
+            get { return _defaultReadOptions; }
+            set { _defaultReadOptions = value ?? new IndexedBlobReadOptions(); }
         }
 
         public void Delete()
@@ -76,7 +81,7 @@ namespace IndexedBlobStore
             var entity = LookupIndexedBlob(fileKey);
             if (entity == null)
                 return null;
-            return new CloudReadonlyIndexedBlob(entity, _store);
+            return new CloudReadonlyIndexedBlob(entity, _store, _defaultReadOptions);
         }
 
         IndexedBlobEntity LookupIndexedBlob(string key)
@@ -94,7 +99,7 @@ namespace IndexedBlobStore
         {
             var query = new TableQuery<IndexedBlobTagEntity>().Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, tag));
             var entities = _store.Table.ExecuteQuery(query);
-            return entities.Select(x => new TaggedIndexedBlob(new CloudReadonlyIndexedBlob(x, _store), x.PartitionKey));
+            return entities.Select(x => new TaggedIndexedBlob(new CloudReadonlyIndexedBlob(x, _store, _defaultReadOptions), x.PartitionKey));
         }
     }
 }

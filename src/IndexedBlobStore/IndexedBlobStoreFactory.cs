@@ -11,10 +11,14 @@ namespace IndexedBlobStore
         readonly CloudBlobClient _blobClient;
         readonly CloudTableClient _tableClient;
 
-        public IndexedBlobStoreFactory(CloudStorageAccount cloudStorageAccount)
+        public IndexedBlobStoreFactory(CloudStorageAccount cloudStorageAccount) : this(cloudStorageAccount.CreateCloudBlobClient(), cloudStorageAccount.CreateCloudTableClient())
         {
-            _blobClient = cloudStorageAccount.CreateCloudBlobClient();
-            _tableClient = cloudStorageAccount.CreateCloudTableClient();
+        }
+
+        public IndexedBlobStoreFactory(CloudBlobClient cloudBlobclient, CloudTableClient cloudTableClient)
+        {
+            _blobClient = cloudBlobclient;
+            _tableClient = cloudTableClient;
         }
 
         public IIndexedBlobStoreClient Create(string storeName, IndexedBlobLocalCacheSettings cacheSettings = null)

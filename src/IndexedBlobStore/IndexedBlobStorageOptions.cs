@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace IndexedBlobStore
 {
@@ -10,10 +11,13 @@ namespace IndexedBlobStore
         {
             FileKeyGenerator = new SHA1FileKeyGenerator();
             AdditionalBlobsForLoadBalancing = 0;
+            StreamWriteSizeInBytes = 4194304;
         }
 
         public IFileKeyGenerator FileKeyGenerator { get; set; }
-
+        public int StreamWriteSizeInBytes { get; set; }
+        public BlobRequestOptions BlobRequestOptions { get; set; }
+        
         public int AdditionalBlobsForLoadBalancing
         {
             get { return _additionalBlobsForLoadBalancing; }
