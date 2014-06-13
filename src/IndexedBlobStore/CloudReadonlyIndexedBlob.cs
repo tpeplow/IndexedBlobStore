@@ -45,11 +45,7 @@ namespace IndexedBlobStore
             }
             var blob = _store.Container.GetBlockBlobReference(string.Format("{0}-{1}", FileKey, index));
             stream = blob.OpenRead();
-            if (_entity.Compressed)
-            {
-                stream = new GZipStream(stream, CompressionMode.Decompress);
-            }
-
+            
             return _store.Cache.Add(FileKey, stream, _entity.Length);
         }
 

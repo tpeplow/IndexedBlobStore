@@ -19,7 +19,6 @@ namespace IndexedBlobStore
             FileKey = fileKey;
             Exists = entity != null;
             _blobCount = entity != null ? entity.BlobCount : options.AdditionalBlobsForLoadBalancing + 1;
-            Compressed = entity != null ? entity.Compressed : options.Compress;
             Length = entity != null ? entity.Length : 0;
             _propertyCount = entity != null ? entity.PropertyCount : _properties.Count;
             Options = options;
@@ -74,7 +73,6 @@ namespace IndexedBlobStore
                 RowKey = FileKey, 
                 BlobUri = Blob.Uri.ToString(),
                 BlobCount = _blobCount,
-                Compressed = Compressed,
                 Length = Length,
                 FileName = FileName,
                 PropertyCount = _propertyCount

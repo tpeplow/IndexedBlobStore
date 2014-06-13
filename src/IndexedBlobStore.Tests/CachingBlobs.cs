@@ -126,7 +126,7 @@ namespace IndexedBlobStore.Tests
             Establish context = () =>
             {
                 _expectedBuffer = new byte[] { 0xFF, 0xFA, 0xFF };
-                using (var blob = Client.CreateIndexedBlob("file", new MemoryStream(_expectedBuffer), new IndexedBlobStorageOptions{ Compress = false }))
+                using (var blob = Client.CreateIndexedBlob("file", new MemoryStream(_expectedBuffer)))
                 {
                     _key = blob.FileKey;
                     blob.Upload();

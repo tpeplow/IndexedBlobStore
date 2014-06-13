@@ -26,10 +26,7 @@ namespace IndexedBlobStore
                 _stream = Store.Cache.Add(FileKey, _stream, Length);
                 ReliableCloudOperations.UploadBlob(() =>
                 {
-                    using (var stream = GetBlobStream())
-                    {
-                        _stream.CopyTo(stream);
-                    }
+                    Blob.UploadFromStream(_stream);
                 });
             }
             catch (StorageException storageException)
@@ -37,14 +34,6 @@ namespace IndexedBlobStore
                 if (storageException.RequestInformation.HttpStatusCode != (int)HttpStatusCode.PreconditionFailed)
                     throw;
             }
-        }
-
-        Stream GetBlobStream()
-        {
-            Stream blobStream = Blob.OpenWrite();
-            if (Options.Compress)
-                blobStream = new GZipStream(blobStream, CompressionMode.Compress);
-            return blobStream;
         }
 
         protected override void Dispose(bool disposing)

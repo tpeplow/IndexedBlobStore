@@ -1,6 +1,4 @@
-﻿using System.Web;
-using System.Web.UI.WebControls.WebParts;
-using Microsoft.WindowsAzure.Storage.Table;
+﻿using Microsoft.WindowsAzure.Storage.Table;
 
 namespace IndexedBlobStore
 {
@@ -8,7 +6,6 @@ namespace IndexedBlobStore
     {
         int BlobCount { get; }
         string FileKey { get; }
-        bool Compressed { get; }
         long Length { get; }
         string FileName { get; }
         int PropertyCount { get; }
@@ -19,7 +16,6 @@ namespace IndexedBlobStore
         public string BlobUri { get; set; }
         public int BlobCount { get; set; }
         public string FileKey { get { return RowKey; }}
-        public bool Compressed { get; set; }
         public long Length { get; set; }
         public string FileName { get; set; }
         public int PropertyCount { get; set; }
@@ -30,7 +26,6 @@ namespace IndexedBlobStore
         public string FileName { get; set; }
         public int BlobCount { get; set; }
         public string FileKey { get { return RowKey; } }
-        public bool Compressed { get; set; }
         public long Length { get; set; }
         public int PropertyCount { get; set; }
 
@@ -42,7 +37,6 @@ namespace IndexedBlobStore
                 RowKey = fileKey,
                 FileName = fileName,
                 BlobCount = blobCount,
-                Compressed = compressed,
                 Length = length,
                 PropertyCount = propertyCount
             };

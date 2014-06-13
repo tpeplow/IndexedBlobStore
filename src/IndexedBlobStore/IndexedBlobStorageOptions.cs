@@ -8,12 +8,10 @@ namespace IndexedBlobStore
 
         public IndexedBlobStorageOptions()
         {
-            Compress = true;
             FileKeyGenerator = new SHA1FileKeyGenerator();
             AdditionalBlobsForLoadBalancing = 0;
         }
 
-        public bool Compress { get; set; }
         public IFileKeyGenerator FileKeyGenerator { get; set; }
 
         public int AdditionalBlobsForLoadBalancing
