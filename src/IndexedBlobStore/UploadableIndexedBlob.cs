@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Net;
 using Microsoft.WindowsAzure.Storage;
 
@@ -26,6 +25,7 @@ namespace IndexedBlobStore
                 _stream = Store.Cache.Add(FileKey, _stream, Length);
                 ReliableCloudOperations.UploadBlob(() =>
                 {
+                    _stream.EnsureAtStart();
                     Blob.UploadFromStream(_stream);
                 });
             }
