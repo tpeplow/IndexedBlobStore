@@ -42,6 +42,20 @@ namespace IndexedBlobStore.Cache
             }
         }
 
+        public void Clear()
+        {
+            try
+            {
+                _lock.EnterWriteLock();
+                _cachedItems = new Dictionary<string, CachedItem>();
+                _cacheSize = 0;
+            }
+            finally
+            {
+                _lock.ExitWriteLock();
+            }
+        }
+
         public bool TryGet(string fileKey, out Stream stream)
         {
             stream = null;
@@ -78,6 +92,7 @@ namespace IndexedBlobStore.Cache
                     return stream;
                 }
                 _lock.EnterWriteLock();
+                CachedItem cachedItem;
                 try
                 {
                     if (IsFull(uncompressedLength))
@@ -86,15 +101,16 @@ namespace IndexedBlobStore.Cache
                         if (IsFull(uncompressedLength))
                             return stream;
                     }
-                    var cachedItem = new CachedItem(fileKey, uncompressedLength, _cacheSettings);
+                    cachedItem = new CachedItem(fileKey, uncompressedLength, _cacheSettings);
                     _cachedItems.Add(fileKey, cachedItem);
                     _cacheSize += uncompressedLength;
-                    return cachedItem.Create(stream);
                 }
                 finally
                 {
                     _lock.ExitWriteLock();
                 }
+                // call create outside of the write lock as to not stop other writers whilst we copy the data into the cache.
+                return cachedItem.Create(stream);
             }
             finally
             {

@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
 using Machine.Specifications;
 
 namespace IndexedBlobStore.Tests
@@ -36,16 +39,23 @@ namespace IndexedBlobStore.Tests
         {
             Establish context = () =>
             {
-                _blob = Client.CreateIndexedBlob("file", CreateStream("not finished"));
-                _blob.Upload();
-                // don't dispose to make it think we're still writing the blob...
+                _theNeverEndingStream = new TheNeverEndingStream();
+                _blob = Client.CreateIndexedBlob("file", "key so I don't get stuck generating the key", _theNeverEndingStream);
+                _task = Task.Factory.StartNew(() => _blob.Upload());
             };
 
             It should_not_be_available_within_cache = () => Cache.TryGet(_blob.FileKey, out _stream).ShouldBeFalse();
 
-            Cleanup cleanBlob = () => _blob.Dispose();
+            Cleanup cleanup = () =>
+            {
+                _theNeverEndingStream.Complete();
+                _task.Wait();
+                _blob.Dispose();
+            };
 
             static IIndexedBlob _blob;
+            static TheNeverEndingStream _theNeverEndingStream;
+            static Task _task;
         }
 
         public class when_cache_is_full : IndexedBlobStoreTest
@@ -109,6 +119,42 @@ namespace IndexedBlobStore.Tests
             It should_not_store_it_in_the_cache = () => Cache.TryGet(_key, out _stream).ShouldBeFalse();
 
             static string _key;
+        }
+
+        public class when_reader_reads_a_chunk_of_the_source : IndexedBlobStoreTest
+        {
+            Establish context = () =>
+            {
+                _expectedBuffer = new byte[] { 0xFF, 0xFA, 0xFF };
+                using (var blob = Client.CreateIndexedBlob("file", new MemoryStream(_expectedBuffer), new IndexedBlobStorageOptions{ Compress = false }))
+                {
+                    _key = blob.FileKey;
+                    blob.Upload();
+                }
+                Cache.Clear();
+            };
+
+            Because of = () =>
+            {
+                var blob = Client.GetIndexedBlob(_key);
+                using (var stream = blob.OpenRead())
+                {
+                    stream.Position = 1;
+                    stream.Read(new byte[1], 0, 1);
+                }
+                blob = Client.GetIndexedBlob(_key);
+                using (var stream = blob.OpenRead())
+                {
+                    _buffer = new byte[3];
+                    stream.Read(_buffer, 0, 3);
+                }
+            };
+
+            It should_store_the_correct_data_in_the_cache = () => _buffer.ShouldEqual(_expectedBuffer);
+
+            static string _key;
+            static byte[] _buffer;
+            static byte[] _expectedBuffer;
         }
 
         public class when_cache_is_full_but_all_items_are_in_use : IndexedBlobStoreTest

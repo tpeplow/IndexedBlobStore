@@ -11,6 +11,7 @@ namespace IndexedBlobStore.Cache
 
         public CachedItem(string fileKey, long uncompressedLength, IndexedBlobLocalCacheSettings cacheSettings)
         {
+            _creating = true;
             Length = uncompressedLength;
             FileKey = fileKey;
             LastAccessed = DateTime.UtcNow;
@@ -34,9 +35,14 @@ namespace IndexedBlobStore.Cache
 
         public Stream Create(Stream stream)
         {
-            if (_creating)
-                throw new InvalidOperationException("You can only call create once");
-            return new DuplicatingStream(this, stream);
+            using (var cachedFile = new FileStream(FilePath, FileMode.Create))
+            using (stream)
+            {
+                stream.CopyTo(cachedFile);
+            }
+            IsCreated = true;
+            _creating = false;
+            return new ReadStream(this);
         }
 
         public void Delete()
@@ -44,90 +50,6 @@ namespace IndexedBlobStore.Cache
             if (IsLocked)
                 throw new InvalidOperationException("Cannot delete a locked item");
             File.Delete(FilePath);
-        }
-
-        private class DuplicatingStream : Stream
-        {
-            readonly CachedItem _cachedItem;
-            readonly Stream _sourceStream;
-            readonly FileStream _duplicateStream;
-
-            public DuplicatingStream(CachedItem cachedItem, Stream sourceStream)
-            {
-                cachedItem._creating = true;
-                _cachedItem = cachedItem;
-                _sourceStream = sourceStream;
-                _duplicateStream = File.OpenWrite(cachedItem.FilePath);
-            }
-
-            protected override void Dispose(bool disposing)
-            {
-                try
-                {
-                    _sourceStream.Dispose();
-                    _duplicateStream.Dispose();
-                    base.Dispose(disposing);
-                }
-                finally
-                {
-                    _cachedItem.IsCreated = true;
-                    _cachedItem._creating = false;
-                }
-            }
-
-            public override int Read(byte[] buffer, int offset, int count)
-            {
-                var readBytes = _sourceStream.Read(buffer, offset, count);
-                _duplicateStream.Write(buffer, offset, readBytes);
-                return readBytes;
-            }
-
-            public override void Flush()
-            {
-                _sourceStream.Flush();
-                _duplicateStream.Flush();
-            }
-
-            public override long Seek(long offset, SeekOrigin origin)
-            {
-                return _sourceStream.Seek(offset, origin);
-            }
-
-            public override void SetLength(long value)
-            {
-                _sourceStream.SetLength(value);
-            }
-
-            public override void Write(byte[] buffer, int offset, int count)
-            {
-                _sourceStream.Write(buffer, offset, count);
-            }
-
-            public override bool CanRead
-            {
-                get { return _sourceStream.CanRead; }
-            }
-
-            public override bool CanSeek
-            {
-                get { return _sourceStream.CanSeek; }
-            }
-
-            public override bool CanWrite
-            {
-                get { return _sourceStream.CanWrite; }
-            }
-
-            public override long Length
-            {
-                get { return _sourceStream.Length; }
-            }
-
-            public override long Position
-            {
-                get { return _sourceStream.Position; }
-                set { _sourceStream.Position = value; }
-            }
         }
 
         private class ReadStream : Stream

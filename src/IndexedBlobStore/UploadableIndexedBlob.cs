@@ -8,13 +8,13 @@ namespace IndexedBlobStore
 {
     internal class UploadableIndexedBlob : CloudIndexedBlob
     {
-        readonly Stream _stream;
+        Stream _stream;
 
         public UploadableIndexedBlob(string fileName, Stream stream, string fileKey, IndexedBlobEntity indexedBlobEntity, IndexedBlobStorageOptions options, CloudIndexedBlobStore cloudIndexedBlobStore, Dictionary<string, string> properties)
             : base(fileKey, indexedBlobEntity, options, cloudIndexedBlobStore, properties)
         {
             Length = stream.Length;
-            _stream = cloudIndexedBlobStore.Cache.Add(fileKey, stream, Length);
+            _stream = stream;
             FileName = fileName;
         }
 
@@ -22,9 +22,10 @@ namespace IndexedBlobStore
         {
             try
             {
+                _stream.EnsureAtStart();
+                _stream = Store.Cache.Add(FileKey, _stream, Length);
                 ReliableCloudOperations.UploadBlob(() =>
                 {
-                    _stream.EnsureAtStart();
                     using (var stream = GetBlobStream())
                     {
                         _stream.CopyTo(stream);

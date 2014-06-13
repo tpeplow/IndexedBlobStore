@@ -21,7 +21,11 @@ namespace IndexedBlobStore.Tests
         It can_be_looked_up_by_key = () => _downloadedBlob.ShouldNotBeNull();
         It can_download_contents = () => ReadStream(_downloadedBlob.OpenRead()).ShouldEqual(_contents);
         It should_start_the_key_with_the_filename = () => _uploadedBlob.FileKey.ShouldStartWith("file-");
-        It should_include_sha1_as_the_key = () => _uploadedBlob.FileKey.ShouldEndWith(new SHA1FileKeyGenerator().GenerateKey(_contentsStream));
+        It should_include_sha1_as_the_key = () =>
+        {
+            using (var stream = _downloadedBlob.OpenRead())
+                _uploadedBlob.FileKey.ShouldEndWith(new SHA1FileKeyGenerator().GenerateKey(stream));
+        };
         It should_store_the_length = () => _uploadedBlob.Length.ShouldEqual(36);
         It should_store_the_file_name = () => _downloadedBlob.FileName.ShouldEqual("file");
         It should_have_an_empty_properties_dictionary = () => _downloadedBlob.Properties.Count.ShouldEqual(0);
