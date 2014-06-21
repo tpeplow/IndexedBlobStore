@@ -70,6 +70,7 @@
     <Compile Include="BlobCopyManager.cs" />
     <Compile Include="Cache\CachedItem.cs" />
     <Compile Include="Cache\IIndexedBlobCache.cs" />
+    <Compile Include="DownloadUploadImportBlob.cs" />
     <Compile Include="IndexedBlobProperty.cs" />
     <Compile Include="ReliableCloudOperations.cs" />
     <Compile Include="CloudIndexedBlob.cs" />

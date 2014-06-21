@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace IndexedBlobStore
@@ -12,11 +13,15 @@ namespace IndexedBlobStore
             FileKeyGenerator = new SHA1FileKeyGenerator();
             AdditionalBlobsForLoadBalancing = 0;
             StreamWriteSizeInBytes = 4194304;
+            TemporaryDirectory = Path.Combine(Path.GetTempPath(), "IndexedBlobStoreTemp");
+            UseBlobCopyAccrossStorageAccounts = false;
         }
 
         public IFileKeyGenerator FileKeyGenerator { get; set; }
         public int StreamWriteSizeInBytes { get; set; }
         public BlobRequestOptions BlobRequestOptions { get; set; }
+        public string TemporaryDirectory { get; set; }
+        public bool UseBlobCopyAccrossStorageAccounts { get; set; }
         
         public int AdditionalBlobsForLoadBalancing
         {

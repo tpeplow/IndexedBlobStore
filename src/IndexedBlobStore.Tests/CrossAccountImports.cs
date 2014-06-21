@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Web.UI.WebControls;
 using System.Xml.Linq;
 using IndexedBlobStore.Cache;
 using Machine.Specifications;
@@ -13,7 +11,37 @@ using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace IndexedBlobStore.Tests
 {
-    public class when_importing_a_blob_accross_storage_accounts
+    public class when_importing_a_blob_accross_storage_accounts_without_blob_copy : CrossAccountImportTests
+    {
+        Establish context = () => _store.DefaultStorageOptions.UseBlobCopyAccrossStorageAccounts = false;
+        
+        It should_copy = () =>
+        {
+            using (var stream = _importedBlob.OpenRead())
+            using (var streamReader = new StreamReader(stream))
+            {
+                var contents = streamReader.ReadToEnd();
+                contents.ShouldEqual("hello world");
+            }
+        };
+    }
+
+    public class when_importing_a_blob_accross_storage_accounts_using_blob_copy : CrossAccountImportTests
+    {
+        Establish context = () => _store.DefaultStorageOptions.UseBlobCopyAccrossStorageAccounts = true;
+        
+        It should_copy = () =>
+        {
+            using (var stream = _importedBlob.OpenRead())
+            using (var streamReader = new StreamReader(stream))
+            {
+                var contents = streamReader.ReadToEnd();
+                contents.ShouldEqual("hello world");
+            }
+        };
+    }
+
+    public class CrossAccountImportTests
     {
         Establish context = () =>
         {
@@ -51,16 +79,6 @@ namespace IndexedBlobStore.Tests
             _importedBlob = _store.GetIndexedBlob("testing");
         };
 
-        It should_copy = () =>
-        {
-            using (var stream = _importedBlob.OpenRead())
-            using (var streamReader = new StreamReader(stream))
-            {
-                var contents = streamReader.ReadToEnd();
-                contents.ShouldEqual("hello world");
-            }
-        };
-
         Cleanup clean = () =>
         {
             _store.Delete();
@@ -71,7 +89,7 @@ namespace IndexedBlobStore.Tests
         static Dictionary<string, CloudStorageAccount> _accounts;
         static List<CloudBlobContainer> _containers;
         static CloudBlockBlob _sourceBlob;
-        static IIndexedBlobStoreClient _store;
-        static IReadonlyIndexedBlob _importedBlob;
+        protected static IIndexedBlobStoreClient _store;
+        protected static IReadonlyIndexedBlob _importedBlob;
     }
 }

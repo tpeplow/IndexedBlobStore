@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Web;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Table;
 
@@ -72,8 +70,13 @@ namespace IndexedBlobStore
             options = EnsureOptions(options);
             
             var indexRecord = LookupIndexedBlob(fileKey);
-            
-            return new CopyableIndexedBlob(sourceBlob, fileKey, indexRecord, options, _store, properties);
+
+            if (options.UseBlobCopyAccrossStorageAccounts || sourceBlob.ServiceClient.Credentials.AccountName == _store.Container.ServiceClient.Credentials.AccountName)
+            {
+                return new CopyableIndexedBlob(sourceBlob, fileKey, indexRecord, options, _store, properties);
+            }
+
+            return new DownloadUploadImportBlob(sourceBlob, fileKey, indexRecord, options, _store, properties);
         }
 
         public IReadonlyIndexedBlob GetIndexedBlob(string fileKey)
