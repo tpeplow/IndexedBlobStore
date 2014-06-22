@@ -28,7 +28,7 @@ namespace IndexedBlobStore
                 try
                 {
                     _sourceBlob.DownloadToFile(tempFile, FileMode.Create, options: Options.BlobRequestOptions);
-                    Blob.UploadFromFile(tempFile, FileMode.Open, options: Options.BlobRequestOptions);
+                    ReliableCloudOperations.UploadBlob(() => Blob.UploadFromFile(tempFile, FileMode.Open, options: Options.BlobRequestOptions));
                 }
                 finally
                 {
