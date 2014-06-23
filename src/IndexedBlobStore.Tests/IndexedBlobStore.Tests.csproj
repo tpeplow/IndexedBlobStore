@@ -82,6 +82,7 @@
     <Compile Include="IndexedBlobStoreTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BlobTagging.cs" />
+    <Compile Include="RaceConditions.cs" />
     <Compile Include="ReliableOperationTests.cs" />
     <Compile Include="TheNeverEndingStream.cs" />
     <Compile Include="UploadingBlobs.cs" />

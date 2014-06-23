@@ -26,7 +26,10 @@ namespace IndexedBlobStore.Tests
 
             var client = factory.Create(storeName, cache);
 
-            Current = new TestContext(client, storageAccount, cache, cacheSettings);
+            Current = new TestContext(client, storageAccount, cache, cacheSettings)
+            {
+                StoreName = storeName
+            };
         }
 
         public static TestContext Current { get; private set; }
@@ -34,6 +37,8 @@ namespace IndexedBlobStore.Tests
         public IIndexedBlobStoreClient Client { get; private set; }
 
         public CloudStorageAccount StorageAccount { get; private set; }
+
+        public string StoreName { get; private set; }
 
         public IIndexedBlobCache Cache { get; private set; }
 

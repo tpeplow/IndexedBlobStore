@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Machine.Specifications;
+using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace IndexedBlobStore.Tests
 {
@@ -42,7 +43,7 @@ namespace IndexedBlobStore.Tests
     {
         Because of = () =>
         {
-            using (var blob = Client.CreateIndexedBlob("a file.txt", "blob with properties", CreateStream("contents with properties"), properties: new Dictionary<string, string> {{"Hello", "World"}}))
+            using (var blob = Client.CreateIndexedBlob("a file.txt", "blob with properties", CreateStream("contents with properties"), properties: new Dictionary<string, string> { { "Hello", "World" } }))
             {
                 blob.Upload();
             }
@@ -57,14 +58,14 @@ namespace IndexedBlobStore.Tests
                 using (
                     var blob = Client.CreateIndexedBlob("a file.txt", "blob with properties",
                         CreateStream("contents with properties"),
-                        properties: new Dictionary<string, string> {{"Hello", "World"}}))
+                        properties: new Dictionary<string, string> { { "Hello", "World" } }))
                 {
                     blob.Upload();
                 }
             });
             exception.ShouldBeOfExactType<BlobAlreadyExistsException>();
         };
-        
+
         static IReadonlyIndexedBlob _downloadedBlob;
     }
 
@@ -110,13 +111,13 @@ namespace IndexedBlobStore.Tests
             TestContext.Current.CacheSettings.Enabled = false;
             using (
                 var blob = Client.CreateIndexedBlob("file", CreateStream(_expectedContent),
-                    new IndexedBlobStorageOptions {AdditionalBlobsForLoadBalancing = 2}))
+                    new IndexedBlobStorageOptions { AdditionalBlobsForLoadBalancing = 2 }))
             {
                 blob.Upload();
                 _nonSpecificVersion = Client.GetIndexedBlob(blob.FileKey).OpenRead();
                 _copy1 = Client.GetIndexedBlob(blob.FileKey).OpenRead(new IndexedBlobReadOptions { UseSpecificLoadBalancedBlob = 1 });
                 _copyThatDoesNotExist = Client.GetIndexedBlob(blob.FileKey).OpenRead(new IndexedBlobReadOptions { UseSpecificLoadBalancedBlob = 3 });
-                TestContext.Current.CacheSettings.Enabled = true;    
+                TestContext.Current.CacheSettings.Enabled = true;
             }
         };
 

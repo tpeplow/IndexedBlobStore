@@ -1,7 +1,6 @@
+using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Net;
-using System.Text;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Table;
@@ -34,7 +33,7 @@ namespace IndexedBlobStore
             var blobName = string.Format("{0}-0", FileKey);
             Blob = Store.Container.GetBlockBlobReference(blobName);
             Blob.StreamWriteSizeInBytes = Options.StreamWriteSizeInBytes;
-            PerformUpload();
+            IgnoreConflict(PerformUpload);
             DuplicateForLoadBalancing();
             InsertIndex();
         }
@@ -66,7 +65,7 @@ namespace IndexedBlobStore
                 throw;
             }
         }
-        
+
         void InsertIndex()
         {
             var indexRecord = new IndexedBlobEntity
@@ -114,10 +113,23 @@ namespace IndexedBlobStore
             for (var i = 0; i < Options.AdditionalBlobsForLoadBalancing; i++)
             {
                 var newBlob = Store.Container.GetBlockBlobReference(string.Format("{0}-{1}", FileKey, i + 1));
-                blobCopyManager.Start(newBlob, Blob);
+                IgnoreConflict(() => blobCopyManager.Start(newBlob, Blob));
             }
 
             blobCopyManager.WaitForCompletion();
+        }
+
+        void IgnoreConflict(Action action)
+        {
+            try
+            {
+                action();
+            }
+            catch (StorageException storageException)
+            {
+                if (storageException.RequestInformation.HttpStatusCode != (int)HttpStatusCode.Conflict)
+                    throw;
+            }
         }
 
         public void Dispose()

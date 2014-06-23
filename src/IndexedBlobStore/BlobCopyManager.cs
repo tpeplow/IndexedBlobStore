@@ -12,7 +12,7 @@ namespace IndexedBlobStore
         public void Start(CloudBlockBlob target, CloudBlockBlob source)
         {
             source = EnsureAccessToSource(target, source);
-            var copyId = target.StartCopyFromBlob(source);
+            var copyId = target.StartCopyFromBlob(source, destAccessCondition: AccessConditions.CreateIfNotExists());
 
             _blobsToCopy.Add(new BlobCopyProgress(target, source, copyId));
         }

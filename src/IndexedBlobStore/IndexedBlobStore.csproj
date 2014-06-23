@@ -66,6 +66,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AccessConditions.cs" />
     <Compile Include="BlobAlreadyExistsException.cs" />
     <Compile Include="BlobCopyManager.cs" />
     <Compile Include="Cache\CachedItem.cs" />

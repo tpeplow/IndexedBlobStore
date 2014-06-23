@@ -35,11 +35,11 @@ namespace IndexedBlobStore.Tests
             var blob = container.GetBlockBlobReference(Guid.NewGuid().ToString("N"));
             blob.UploadFromStream(CreateStream("tom should error"), new AccessCondition
             {
-                IfNotModifiedSinceTime = new DateTimeOffset(DateTime.MinValue)
+                IfNoneMatchETag = "*",
             });
             _exception = Catch.Exception(() => blob.UploadFromStream(CreateStream("tom should error"),  new AccessCondition
             {
-                IfNotModifiedSinceTime = new DateTimeOffset(DateTime.MinValue)
+                IfNoneMatchETag = "*"
             }));
         };
 

@@ -19,21 +19,16 @@ namespace IndexedBlobStore
 
         protected override void PerformUpload()
         {
-            try
+            _stream.EnsureAtStart();
+            _stream = Store.Cache.Add(FileKey, _stream, Length);
+            ReliableCloudOperations.UploadBlob(() =>
             {
                 _stream.EnsureAtStart();
-                _stream = Store.Cache.Add(FileKey, _stream, Length);
-                ReliableCloudOperations.UploadBlob(() =>
-                {
-                    _stream.EnsureAtStart();
-                    Blob.UploadFromStream(_stream, options: Options.BlobRequestOptions);
-                });
-            }
-            catch (StorageException storageException)
-            {
-                if (storageException.RequestInformation.HttpStatusCode != (int)HttpStatusCode.PreconditionFailed)
-                    throw;
-            }
+                Blob.UploadFromStream(
+                    _stream,
+                    options: Options.BlobRequestOptions,
+                    accessCondition: AccessConditions.CreateIfNotExists());
+            });
         }
 
         protected override void Dispose(bool disposing)
