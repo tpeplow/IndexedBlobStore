@@ -15,6 +15,11 @@ namespace IndexedBlobStore
             : base (fileKey, indexRecord, options, store, properties)
         {
             _sourceBlob = sourceBlob;
+
+            if (sourceBlob.Properties.Length == 0)
+                sourceBlob.FetchAttributes();
+            Length = sourceBlob.Properties.Length;
+            FileName = sourceBlob.Name;
         }
 
         protected override void PerformUpload()

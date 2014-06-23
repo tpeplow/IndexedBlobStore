@@ -24,6 +24,9 @@ namespace IndexedBlobStore.Tests
                 contents.ShouldEqual("hello world");
             }
         };
+
+        It should_set_length = () => _importedBlob.Length.ShouldNotEqual(0);
+        It should_set_name = () => _importedBlob.FileName.ShouldEqual("source");
     }
 
     public class when_importing_a_blob_accross_storage_accounts_using_blob_copy : CrossAccountImportTests
@@ -39,6 +42,9 @@ namespace IndexedBlobStore.Tests
                 contents.ShouldEqual("hello world");
             }
         };
+
+        It should_set_length = () => _importedBlob.Length.ShouldNotEqual(0);
+        It should_set_name = () => _importedBlob.FileName.ShouldEqual("source");
     }
 
     public class CrossAccountImportTests
