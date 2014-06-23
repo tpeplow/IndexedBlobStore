@@ -75,14 +75,14 @@ namespace IndexedBlobStore
             if (_entity.PropertyCount == 0)
                 return new Dictionary<string, string>();
 
-            var partitionKey = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, FileKey);
-            var rowkey = TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.GreaterThan, "prop::");
-            var query = new TableQuery<IndexedBlobProperty>()
-                .Where(TableQuery.CombineFilters(partitionKey, TableOperators.And, rowkey))
-                .Take(_entity.PropertyCount);
+            var result = _store.Table.Execute(TableOperation.Retrieve(_entity.FileKey, string.Format("prop::{0}", FileKey)));
+            var entity = result.Result as DynamicTableEntity;
+            if (entity != null)
+            {
+                return entity.Properties.Select(x => new { x.Key, x.Value.StringValue}).ToDictionary(x => x.Key, x => x.StringValue);
+            }
 
-            var result = _store.Table.ExecuteQuery(query);
-            return result.ToDictionary(x => x.Key, x => x.Value);
+            return new Dictionary<string, string>();
         }
     }
 }

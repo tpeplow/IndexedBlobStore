@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Net;
 using System.Text;
 using Microsoft.WindowsAzure.Storage;
@@ -84,9 +85,15 @@ namespace IndexedBlobStore
                 {
                     TableOperation.Insert(indexRecord)
                 };
-                foreach (var property in _properties)
+
+                if (_properties.Count > 0)
                 {
-                    batch.Add(TableOperation.Insert(new IndexedBlobProperty(FileKey, property.Key, property.Value)));
+                    var dynamicTableEntity = new DynamicTableEntity(FileKey, string.Format("prop::{0}", FileKey));
+                    foreach (var property in _properties)
+                    {
+                        dynamicTableEntity.Properties.Add(property.Key, new EntityProperty(property.Value));
+                    }
+                    batch.Add(TableOperation.Insert(dynamicTableEntity));
                 }
                 Store.Table.ExecuteBatch(batch);
             }
