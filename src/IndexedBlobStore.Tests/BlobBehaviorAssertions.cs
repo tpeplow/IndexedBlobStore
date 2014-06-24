@@ -47,4 +47,30 @@ namespace IndexedBlobStore.Tests
 
         static Exception _exception;
     }
+
+    public class CreateIfNotExistsTest : IndexedBlobStoreTest
+    {
+        Because of = () =>
+        {
+            var container = TestContext.Current.StorageAccount.CreateCloudBlobClient().GetContainerReference("test");
+            container.CreateIfNotExists();
+            var blob = container.GetBlockBlobReference(Guid.NewGuid().ToString("N"));
+            
+            var stream = blob.OpenWrite(new AccessCondition { IfNoneMatchETag = "*", });
+            CreateStream("fred").CopyTo(stream);
+            stream.Flush();
+
+
+            var stream2 = blob.OpenWrite(new AccessCondition { IfNoneMatchETag = "*", });
+            CreateStream("fred").CopyTo(stream);
+            stream.Flush();
+
+            stream2.Dispose();
+
+            _exception = Catch.Exception(stream.Dispose);
+        };
+        
+        It should_throw_a_conflict_exception = () => _exception.ShouldNotBeNull();
+        static Exception _exception;
+    }
 }
