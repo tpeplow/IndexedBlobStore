@@ -1,1 +1,2 @@
-.\.nuget\NuGet.exe pack .\IndexedBlobStore.nuspec -version %1
+set /p ver=<ver.txt
+.\.nuget\NuGet.exe pack .\IndexedBlobStore.nuspec -version %ver%
