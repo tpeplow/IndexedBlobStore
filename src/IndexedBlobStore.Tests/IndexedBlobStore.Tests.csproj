@@ -84,6 +84,8 @@
     <Compile Include="BlobTagging.cs" />
     <Compile Include="RaceConditions.cs" />
     <Compile Include="ReliableOperationTests.cs" />
+    <Compile Include="SHA1FileKeyGeneratorTests.cs" />
+    <Compile Include="StreamOfStreamTests.cs" />
     <Compile Include="TheNeverEndingStream.cs" />
     <Compile Include="UploadingBlobs.cs" />
     <Compile Include="TestContext.cs" />

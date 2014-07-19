@@ -4,6 +4,6 @@ namespace IndexedBlobStore
 {
     public interface IFileKeyGenerator
     {
-        string GenerateKey(Stream stream);
+        string GenerateKey(string fileName, Stream fileStream);
     }
 }

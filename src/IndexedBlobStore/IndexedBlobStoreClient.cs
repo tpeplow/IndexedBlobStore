@@ -42,8 +42,7 @@ namespace IndexedBlobStore
         {
             options = EnsureOptions(options);
 
-            var key = options.FileKeyGenerator.GenerateKey(stream);
-            key = string.Format("{0}-{1}", fileName, key);
+            var key = options.FileKeyGenerator.GenerateKey(fileName, stream);
 
             return CreateIndexedBlob(fileName, key, stream, options, properties);
         }

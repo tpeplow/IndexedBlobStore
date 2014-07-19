@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using Machine.Specifications;
-using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace IndexedBlobStore.Tests
 {
@@ -21,11 +20,10 @@ namespace IndexedBlobStore.Tests
         };
         It can_be_looked_up_by_key = () => _downloadedBlob.ShouldNotBeNull();
         It can_download_contents = () => ReadStream(_downloadedBlob.OpenRead()).ShouldEqual(_contents);
-        It should_start_the_key_with_the_filename = () => _uploadedBlob.FileKey.ShouldStartWith("file-");
         It should_include_sha1_as_the_key = () =>
         {
             using (var stream = _downloadedBlob.OpenRead())
-                _uploadedBlob.FileKey.ShouldEndWith(new SHA1FileKeyGenerator().GenerateKey(stream));
+                _uploadedBlob.FileKey.ShouldEndWith(new SHA1FileKeyGenerator().GenerateKey("file", stream));
         };
         It should_store_the_length = () => _uploadedBlob.Length.ShouldEqual(36);
         It should_store_the_file_name = () => _downloadedBlob.FileName.ShouldEqual("file");
@@ -130,4 +128,37 @@ namespace IndexedBlobStore.Tests
         static string _expectedContent = "load balanced";
         static Stream _nonSpecificVersion;
     }
+
+    public class when_uploading_blob_with_subdirectories_in_file_name : IndexedBlobStoreTest
+    {
+        Establish context = () =>
+        {
+            _contents = Guid.NewGuid().ToString();
+            _contentsStream = CreateStream(_contents);
+            _uploadedBlob = Client.CreateIndexedBlob("folder\\file", _contentsStream);
+        };
+        Because of = () =>
+        {
+            _uploadedBlob.Upload();
+            _downloadedBlob = Client.GetIndexedBlob(_uploadedBlob.FileKey);
+        };
+        It can_be_looked_up_by_key = () => _downloadedBlob.ShouldNotBeNull();
+        It can_download_contents = () => ReadStream(_downloadedBlob.OpenRead()).ShouldEqual(_contents);
+        It should_include_sha1_as_the_key = () =>
+        {
+            using (var stream = _downloadedBlob.OpenRead())
+                _uploadedBlob.FileKey.ShouldEndWith(new SHA1FileKeyGenerator().GenerateKey("folder\\file", stream));
+        };
+        It should_store_the_length = () => _uploadedBlob.Length.ShouldEqual(36);
+        It should_store_the_file_name = () => _downloadedBlob.FileName.ShouldEqual("folder\\file");
+        It should_have_an_empty_properties_dictionary = () => _downloadedBlob.Properties.Count.ShouldEqual(0);
+
+        Cleanup clean = () => _uploadedBlob.Dispose();
+
+        static IIndexedBlob _uploadedBlob;
+        static IReadonlyIndexedBlob _downloadedBlob;
+        static Stream _contentsStream;
+        static string _contents;
+    }
+
 }
