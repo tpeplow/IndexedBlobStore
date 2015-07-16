@@ -29,7 +29,12 @@ namespace IndexedBlobStore
             var tempFile = Path.Combine(Options.TemporaryDirectory, Guid.NewGuid().ToString());
             try
             {
-                _sourceBlob.DownloadToFile(tempFile, FileMode.Create, options: Options.BlobRequestOptions);
+                using (var destinationStream = File.Create(tempFile))
+                using (var blobStream = _sourceBlob.OpenRead(options: Options.BlobRequestOptions))
+                {
+                    blobStream.CopyTo(destinationStream);
+                }
+                
                 ReliableCloudOperations.UploadBlob(() => Blob.UploadFromFile(
                     tempFile,
                     FileMode.Open,
