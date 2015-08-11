@@ -6,6 +6,16 @@ namespace IndexedBlobStore.Tests
 {
     internal class TestContext
     {
+        static TestContext()
+        {
+            Setup();
+        }
+
+        ~TestContext()
+        {
+            Current.Client.Delete();
+        }
+
         private TestContext(IIndexedBlobStoreClient client, CloudStorageAccount storageAccount, IndexedBlobFileSystemCache cache, IndexedBlobLocalCacheSettings cacheSettings)
         {
             Client = client;
