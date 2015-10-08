@@ -21,7 +21,7 @@ namespace IndexedBlobStore
         {
             _stream.EnsureAtStart();
             _stream = Store.Cache.Add(FileKey, _stream, Length);
-            ReliableCloudOperations.UploadBlob(() =>
+            ReliableCloudOperations.Retry(() =>
             {
                 _stream.EnsureAtStart();
                 Blob.UploadFromStream(

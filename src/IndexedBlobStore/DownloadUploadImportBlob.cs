@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization;
+using System.Threading;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 
@@ -29,13 +31,9 @@ namespace IndexedBlobStore
             var tempFile = Path.Combine(Options.TemporaryDirectory, Guid.NewGuid().ToString());
             try
             {
-                using (var destinationStream = File.Create(tempFile))
-                using (var blobStream = _sourceBlob.OpenRead(options: Options.BlobRequestOptions))
-                {
-                    blobStream.CopyTo(destinationStream);
-                }
-                
-                ReliableCloudOperations.UploadBlob(() => Blob.UploadFromFile(
+                ReliableCloudOperations.Retry(() => DownloadSource(tempFile));
+
+                ReliableCloudOperations.Retry(() => Blob.UploadFromFile(
                     tempFile,
                     FileMode.Open,
                     options: Options.BlobRequestOptions,
@@ -44,6 +42,15 @@ namespace IndexedBlobStore
             finally
             {
                 File.Delete(tempFile);
+            }
+        }
+
+        void DownloadSource(string tempFile)
+        {
+            using (var destinationStream = File.Create(tempFile))
+            using (var blobStream = _sourceBlob.OpenRead(options: Options.BlobRequestOptions))
+            {
+                blobStream.CopyTo(destinationStream);
             }
         }
     }

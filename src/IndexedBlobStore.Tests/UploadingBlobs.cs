@@ -181,5 +181,4 @@ namespace IndexedBlobStore.Tests
         static Stream _contentsStream;
         static string _contents;
     }
-
 }

@@ -1,10 +1,55 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Machine.Specifications;
 using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace IndexedBlobStore.Tests
 {
+    [Subject("412 Errors")]
+    public class when_blob_changes_between_opening_and_reading : ImportTests
+    {
+        public class when_failures_less_than_retry_count : when_blob_changes_between_opening_and_reading
+        {
+            Establish context = () => _errorCount = 1;
+            Because of = DownloadingDuringUpdate;
+            It should_NOT_throw = () => _exception.ShouldBeNull();
+        }
+
+        public class when_failures_exceed_retry_count : when_blob_changes_between_opening_and_reading
+        {
+            Establish context = () => _errorCount = 5;
+            Because of = DownloadingDuringUpdate;
+            It should_throw = () => _exception.ShouldNotBeNull();
+        }
+
+        static void DownloadingDuringUpdate()
+        {
+            _exception = Catch.Exception(() =>
+            {
+                ReliableCloudOperations.Retry(DownloadSource);
+            });
+        }
+
+        private static void DownloadSource()
+        {
+            using (var destinationStream = new MemoryStream())
+            {
+                using (var blobStream = BlobToImport.OpenRead(options: new IndexedBlobStorageOptions().BlobRequestOptions))
+                {
+                    // Make an independent change to the source blob to cause a 412
+                    if (--_errorCount > 0) BlobToImport.SetProperties();
+                    blobStream.CopyTo(destinationStream);
+                }
+            }
+        }
+
+        static Exception _exception;
+        static int _errorCount;
+    }
+
     public class when_importing_blob_that_does_not_exist : ImportTests
     {
         Establish context = () => _importedBlob = Client.ImportBlob(BlobToImport);
