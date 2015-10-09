@@ -13,7 +13,7 @@ namespace IndexedBlobStore
 
         public static int RetryCount { get; set; }
 
-        public static void UploadBlob(Action upload)
+        public static void Retry(Action upload)
         {
             var retryCount = 0;
             while (true)

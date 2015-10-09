@@ -127,8 +127,17 @@ namespace IndexedBlobStore
             }
             catch (StorageException storageException)
             {
-                if (storageException.RequestInformation.HttpStatusCode != (int)HttpStatusCode.Conflict)
-                    throw;
+                switch (storageException.RequestInformation.HttpStatusCode)
+                {
+                    case (int)HttpStatusCode.PreconditionFailed:
+                        Exists = true;
+                        throw new BlobAlreadyExistsException(FileKey);
+                    case (int)HttpStatusCode.Conflict:
+                        Exists = true;
+                        throw new BlobAlreadyExistsException(FileKey);
+                }
+
+                throw;
             }
         }
 
