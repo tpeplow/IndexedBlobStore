@@ -29,7 +29,7 @@ namespace IndexedBlobStore.Tests
         {
             _exception = Catch.Exception(() =>
             {
-                ReliableCloudOperations.Retry(DownloadSource);
+                ReliableCloudOperations.RetryWrite(DownloadSource);
             });
         }
 

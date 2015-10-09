@@ -31,9 +31,9 @@ namespace IndexedBlobStore
             var tempFile = Path.Combine(Options.TemporaryDirectory, Guid.NewGuid().ToString());
             try
             {
-                ReliableCloudOperations.Retry(() => DownloadSource(tempFile));
+                ReliableCloudOperations.RetryRead(() => DownloadSource(tempFile));
 
-                ReliableCloudOperations.Retry(() => Blob.UploadFromFile(
+                ReliableCloudOperations.RetryWrite(() => Blob.UploadFromFile(
                     tempFile,
                     FileMode.Open,
                     options: Options.BlobRequestOptions,

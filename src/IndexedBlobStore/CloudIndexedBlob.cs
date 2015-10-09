@@ -125,20 +125,33 @@ namespace IndexedBlobStore
             {
                 action();
             }
-            catch (StorageException storageException)
+            catch (RetryWriteException ex)
             {
-                switch (storageException.RequestInformation.HttpStatusCode)
-                {
-                    case (int)HttpStatusCode.PreconditionFailed:
-                        Exists = true;
-                        throw new BlobAlreadyExistsException(FileKey);
-                    case (int)HttpStatusCode.Conflict:
-                        Exists = true;
-                        throw new BlobAlreadyExistsException(FileKey);
-                }
+                var exception = ex.InnerException as StorageException;
+                if (exception != null)
+                    throw HandleStorageException(exception);
 
                 throw;
             }
+            catch (StorageException storageException)
+            {
+                throw HandleStorageException(storageException);
+            }
+        }
+
+        Exception HandleStorageException(StorageException storageException)
+        {
+            switch (storageException.RequestInformation.HttpStatusCode)
+            {
+                case (int) HttpStatusCode.PreconditionFailed:
+                    Exists = true;
+                    return new BlobAlreadyExistsException(FileKey);
+                case (int) HttpStatusCode.Conflict:
+                    Exists = true;
+                    return new BlobAlreadyExistsException(FileKey);
+            }
+
+            return storageException;
         }
 
         public void Dispose()
