@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using Machine.Specifications;
 using Microsoft.WindowsAzure.Storage.Blob;
 
@@ -20,16 +18,29 @@ namespace IndexedBlobStore.Tests
 
         public class when_failures_exceed_retry_count : when_blob_changes_between_opening_and_reading
         {
-            Establish context = () => _errorCount = 5;
+            Establish context = () => _errorCount = 6;
             Because of = DownloadingDuringUpdate;
             It should_throw = () => _exception.ShouldNotBeNull();
+        }
+
+        public class when_retrying_after_initial_failure : when_blob_changes_between_opening_and_reading
+        {
+            Establish context = () =>
+            {
+                _errorCount = 5;
+                DownloadingDuringUpdate();
+                _exception = null;
+                _errorCount = 3;
+            };
+            Because of = DownloadingDuringUpdate;
+            It should_not_throw = () => _exception.ShouldBeNull();
         }
 
         static void DownloadingDuringUpdate()
         {
             _exception = Catch.Exception(() =>
             {
-                ReliableCloudOperations.RetryWrite(DownloadSource);
+                ReliableCloudOperations.RetryRead(DownloadSource);
             });
         }
 
@@ -40,7 +51,7 @@ namespace IndexedBlobStore.Tests
                 using (var blobStream = BlobToImport.OpenRead(options: new IndexedBlobStorageOptions().BlobRequestOptions))
                 {
                     // Make an independent change to the source blob to cause a 412
-                    if (--_errorCount > 0) BlobToImport.SetProperties();
+                    if (_errorCount-- > 0) BlobToImport.SetProperties();
                     blobStream.CopyTo(destinationStream);
                 }
             }

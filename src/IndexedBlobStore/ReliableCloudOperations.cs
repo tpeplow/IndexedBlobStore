@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Runtime.Serialization;
+using System.Threading;
 using Microsoft.WindowsAzure.Storage;
 
 namespace IndexedBlobStore
@@ -14,14 +15,14 @@ namespace IndexedBlobStore
 
         public static int RetryCount { get; set; }
 
-        public static void RetryWrite(Action upload)
+        public static void RetryWrite(Action writeAction)
         {
             var retryCount = 0;
             while (true)
             {
                 try
                 {
-                    upload();
+                    writeAction();
                     return;
                 }
                 catch (StorageException storageException)
@@ -35,22 +36,24 @@ namespace IndexedBlobStore
             }
         }
 
-        public static void RetryRead(Action upload)
+        public static void RetryRead(Action readAction)
         {
             var retryCount = 0;
             while (true)
             {
                 try
                 {
-                    upload();
+                    readAction();
                     return;
                 }
                 catch (StorageException storageException)
                 {
-                    if (storageException.RequestInformation.HttpStatusCode != (int)HttpStatusCode.BadRequest || retryCount == RetryCount)
+                    if (retryCount == RetryCount)
                     {
                         throw new RetryReadException("Exceeded retries on a read", storageException);
                     }
+
+                    Thread.Sleep(1000);
                     retryCount++;
                 }
             }

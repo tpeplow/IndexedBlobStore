@@ -34,7 +34,7 @@ namespace IndexedBlobStore.Tests
             throw new StorageException(new RequestResult { HttpStatusCode = 412 }, "preconditions not met", new Exception("inside you"));
         }));
 
-        It should_NOT_retry = () => _uploadAttempts.ShouldEqual(1);
+        It should_retry = () => _uploadAttempts.ShouldEqual(6);
         It should_throw_the_exception = () => _exception.ShouldNotBeNull();
         It should_throw_write_exception = () =>
         {
