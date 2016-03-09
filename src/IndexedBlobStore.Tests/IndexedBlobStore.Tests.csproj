@@ -82,6 +82,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BlobBehaviorAssertions.cs" />
+    <Compile Include="BlobCopyManagerTests.cs" />
     <Compile Include="CachingBlobs.cs" />
     <Compile Include="CrossAccountImports.cs" />
     <Compile Include="ImportingBlobs.cs" />
