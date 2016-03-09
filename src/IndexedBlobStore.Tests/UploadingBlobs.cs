@@ -138,37 +138,6 @@ namespace IndexedBlobStore.Tests
         static IndexedBlobStorageOptions _options;
     }
 
-    public class when_uploading_blob_that_already_exists_interleaved_with_duplicates_async : IndexedBlobStoreTest
-    {
-        Establish context = () =>
-        {
-            _options = new IndexedBlobStorageOptions()
-            {
-                AdditionalBlobsForLoadBalancing = 50,
-                UseBlobCopyAccrossStorageAccounts = true
-            };
-        };
-
-        Because of = () => _exception = Catch.Exception(() =>
-        {
-            _reference = Client.CreateIndexedBlob("file", CreateStream(_content), _options);
-
-            using (var blob = Client.CreateIndexedBlob("file", CreateStream(_content), _options))
-            {
-                blob.Upload();
-            }
-
-            _reference.Upload();
-        });
-        It should_indicate_it_already_exists = () => _reference.Exists.ShouldBeTrue();
-        It should_throw_blob_already_exists_exception_if_uploaded = () => _exception.ShouldBeOfExactType<BlobAlreadyExistsException>();
-
-        static Exception _exception;
-        static IIndexedBlob _reference;
-        static string _content = "when uploading blob that already exists interleaved";
-        static IndexedBlobStorageOptions _options;
-    }
-
     public class when_uploading_blob_using_custom_key : IndexedBlobStoreTest
     {
         Because of = () =>
