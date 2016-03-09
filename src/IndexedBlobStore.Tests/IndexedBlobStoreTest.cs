@@ -10,7 +10,7 @@ namespace IndexedBlobStore.Tests
         protected static IIndexedBlobStoreClient Client { get { return TestContext.Current.Client; } }
         protected static IIndexedBlobCache Cache { get { return TestContext.Current.Cache; } }
 
-        protected static Stream CreateStream(string contents)
+        public static Stream CreateStream(string contents)
         {
             var stream = new MemoryStream();
             var streamWriter = new StreamWriter(stream);
@@ -20,7 +20,7 @@ namespace IndexedBlobStore.Tests
             return stream;
         }
 
-        protected static string ReadStream(Stream stream)
+        public static string ReadStream(Stream stream)
         {
             using (stream)
             using (var streamReader = new StreamReader(stream))
@@ -29,7 +29,7 @@ namespace IndexedBlobStore.Tests
             }
         }
 
-        protected static IIndexedBlob UploadUniqueBlob(Dictionary<string, string> properties = null)
+        public static IIndexedBlob UploadUniqueBlob(Dictionary<string, string> properties = null)
         {
             using (var blob = Client.CreateIndexedBlob("unique.txt", CreateStream(Guid.NewGuid().ToString()), properties: properties))
             {
