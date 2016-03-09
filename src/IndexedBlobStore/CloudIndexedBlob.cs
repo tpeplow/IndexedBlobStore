@@ -100,6 +100,7 @@ namespace IndexedBlobStore
             {
                 if (storageException.RequestInformation.HttpStatusCode == (int) HttpStatusCode.Conflict)
                 {
+                    Exists = true;
                     throw new BlobAlreadyExistsException(FileKey);
                 }
                 throw;
