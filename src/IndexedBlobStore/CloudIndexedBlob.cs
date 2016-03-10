@@ -95,11 +95,13 @@ namespace IndexedBlobStore
                     batch.Add(TableOperation.Insert(dynamicTableEntity));
                 }
                 Store.Table.ExecuteBatch(batch);
+                Exists = true;
             }
             catch (StorageException storageException)
             {
                 if (storageException.RequestInformation.HttpStatusCode == (int) HttpStatusCode.Conflict)
                 {
+                    Exists = true;
                     throw new BlobAlreadyExistsException(FileKey);
                 }
                 throw;
@@ -127,31 +129,22 @@ namespace IndexedBlobStore
             }
             catch (RetryWriteException ex)
             {
-                var exception = ex.InnerException as StorageException;
-                if (exception != null)
-                    throw HandleStorageException(exception);
+                var storageException = ex.InnerException as StorageException;
+                if (storageException == null) throw;
 
-                throw;
+                HandleStorageException(storageException);
             }
             catch (StorageException storageException)
             {
-                throw HandleStorageException(storageException);
+                HandleStorageException(storageException);
             }
         }
 
-        Exception HandleStorageException(StorageException storageException)
+        void HandleStorageException(StorageException storageException)
         {
-            switch (storageException.RequestInformation.HttpStatusCode)
-            {
-                case (int) HttpStatusCode.PreconditionFailed:
-                    Exists = true;
-                    return new BlobAlreadyExistsException(FileKey);
-                case (int) HttpStatusCode.Conflict:
-                    Exists = true;
-                    return new BlobAlreadyExistsException(FileKey);
-            }
-
-            return storageException;
+            var httpStatusCode = storageException.RequestInformation.HttpStatusCode;
+            if (httpStatusCode != (int) HttpStatusCode.Conflict && httpStatusCode != (int) HttpStatusCode.PreconditionFailed) 
+                throw storageException;
         }
 
         public void Dispose()

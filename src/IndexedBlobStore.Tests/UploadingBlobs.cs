@@ -49,14 +49,14 @@ namespace IndexedBlobStore.Tests
         };
 
         It should_contain_the_properties = () => _downloadedBlob.Properties["Hello"].ShouldEqual("World");
-        It should_fail_to_upload_if_you_only_change_propertie = () =>
+        It should_fail_to_upload_if_you_only_change_properties = () =>
         {
             var exception = Catch.Exception(() =>
             {
                 using (
                     var blob = Client.CreateIndexedBlob("a file.txt", "blob with properties",
                         CreateStream("contents with properties"),
-                        properties: new Dictionary<string, string> { { "Hello", "World" } }))
+                        properties: new Dictionary<string, string> { { "Goodbye", "Otherworld" } }))
                 {
                     blob.Upload();
                 }
@@ -91,21 +91,53 @@ namespace IndexedBlobStore.Tests
     {
         Because of = () => _exception = Catch.Exception(() =>
         {
-            _reference = Client.CreateIndexedBlob("file", CreateStream(_content));
-
-            using (var blob = Client.CreateIndexedBlob("file", CreateStream(_content)))
-            {
-                blob.Upload();
-            }
-
-            _reference.Upload();
+            _blob1 = Client.CreateIndexedBlob("file", CreateStream(_content));
+            _blob2 = Client.CreateIndexedBlob("file", CreateStream(_content));
+            _blob2.Upload();
+            _blob2.Dispose();
+            _blob1.Upload();
+            _blob1.Dispose();
         });
-        It should_indicate_it_already_exists = () => _reference.Exists.ShouldBeTrue();
+
+        It should_indicate_it_already_exists = () => _blob1.Exists.ShouldBeTrue();
+        It should_indicate_other_blob_exists = () => _blob2.Exists.ShouldBeTrue();
         It should_throw_blob_already_exists_exception_if_uploaded = () => _exception.ShouldBeOfExactType<BlobAlreadyExistsException>();
 
         static Exception _exception;
-        static IIndexedBlob _reference;
+        static IIndexedBlob _blob1;
         static string _content = "when uploading blob that already exists interleaved";
+        static IIndexedBlob _blob2;
+    }
+
+    public class when_uploading_blob_that_already_exists_interleaved_with_duplicates : IndexedBlobStoreTest
+    {
+        Establish context = () =>
+        {
+            _options = new IndexedBlobStorageOptions()
+            {
+                AdditionalBlobsForLoadBalancing = 50
+            };
+        };
+
+        Because of = () => _exception = Catch.Exception(() =>
+        {
+            _blob1 = Client.CreateIndexedBlob("file", CreateStream(_content), _options);
+            _blob2 = Client.CreateIndexedBlob("file", CreateStream(_content), _options);
+            _blob2.Upload();
+            _blob2.Dispose();
+            _blob1.Upload();
+            _blob1.Dispose();
+        });
+
+        It should_indicate_blob1_already_exists = () => _blob1.Exists.ShouldBeTrue();
+        It should_indicate_blob2_exists = () => _blob2.Exists.ShouldBeTrue();
+        It should_throw_blob_already_exists_exception_if_uploaded = () => _exception.ShouldBeOfExactType<BlobAlreadyExistsException>();
+
+        static Exception _exception;
+        static IIndexedBlob _blob1;
+        static string _content = "when uploading blob that already exists interleaved";
+        static IndexedBlobStorageOptions _options;
+        static IIndexedBlob _blob2;
     }
 
     public class when_uploading_blob_using_custom_key : IndexedBlobStoreTest

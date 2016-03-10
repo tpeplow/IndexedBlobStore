@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization;
-using System.Threading;
-using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace IndexedBlobStore
@@ -33,11 +30,15 @@ namespace IndexedBlobStore
             {
                 ReliableCloudOperations.RetryRead(() => DownloadSource(tempFile));
 
-                ReliableCloudOperations.RetryWrite(() => Blob.UploadFromFile(
-                    tempFile,
-                    FileMode.Open,
-                    options: Options.BlobRequestOptions,
-                    accessCondition: AccessConditions.CreateIfNotExists()));
+                ReliableCloudOperations.RetryWrite(() =>
+                {
+                    if (Blob.Exists()) return;
+                    Blob.UploadFromFile(
+                        tempFile,
+                        FileMode.Open,
+                        options: Options.BlobRequestOptions,
+                        accessCondition: AccessConditions.CreateIfNotExists());
+                });
             }
             finally
             {

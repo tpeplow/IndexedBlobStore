@@ -25,6 +25,30 @@ namespace IndexedBlobStore.Tests
         static IReadonlyIndexedBlob _downloadedBlob;
     }
 
+    public class when_importing_blob_that_does_not_exist_async : ImportTests
+    {
+        Establish context = () =>
+        {
+            _importedBlob = Client.ImportBlob(BlobToImport, new IndexedBlobStorageOptions { AdditionalBlobsForLoadBalancing = 50, UseBlobCopyAccrossStorageAccounts = true });
+        };
+
+        Because of = () =>
+        {
+            _importedBlob.Upload();
+            _downloadedBlob = Client.GetIndexedBlob(_importedBlob.FileKey);
+        };
+        It can_be_looked_up_by_key = () => _downloadedBlob.ShouldNotBeNull();
+        It can_download_contents = () => ReadStream(_downloadedBlob.OpenRead()).ShouldEqual("source");
+        It should_set_the_size = () => _importedBlob.Length.ShouldEqual(6);
+        It should_use_the_source_blob_name_as_filename = () => _importedBlob.FileName.ShouldEqual(BlobName);
+        It should_add_the_etag_to_the_filekey = () => _downloadedBlob.FileKey.ShouldContain(BlobToImport.Properties.ETag);
+        It should_add_the_container_to_the_filekey = () => _downloadedBlob.FileKey.ShouldContain(BlobToImport.Container.Name);
+        It should_add_the_blob_name_to_the_filekey = () => _downloadedBlob.FileKey.ShouldContain(BlobToImport.Name);
+
+        static IIndexedBlob _importedBlob;
+        static IReadonlyIndexedBlob _downloadedBlob;
+    }
+
     public class when_importing_blob_that_does_not_exist_with_properties : ImportTests
     {
         Establish context = () => _importedBlob = Client.ImportBlob(BlobToImport, properties: new Dictionary<string, string> { { "name", "dave" } });
