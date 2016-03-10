@@ -95,6 +95,7 @@ namespace IndexedBlobStore
                     batch.Add(TableOperation.Insert(dynamicTableEntity));
                 }
                 Store.Table.ExecuteBatch(batch);
+                Exists = true;
             }
             catch (StorageException storageException)
             {
@@ -144,8 +145,6 @@ namespace IndexedBlobStore
             var httpStatusCode = storageException.RequestInformation.HttpStatusCode;
             if (httpStatusCode != (int) HttpStatusCode.Conflict && httpStatusCode != (int) HttpStatusCode.PreconditionFailed) 
                 throw storageException;
-
-            Exists = true;
         }
 
         public void Dispose()
