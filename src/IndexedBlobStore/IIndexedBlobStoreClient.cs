@@ -12,7 +12,7 @@ namespace IndexedBlobStore
         IIndexedBlob CreateIndexedBlob(string fileName, string fileKey, Stream stream, IndexedBlobStorageOptions options = null, Dictionary<string, string> properties = null);
         IIndexedBlob ImportBlob(CloudBlockBlob sourceBlob, IndexedBlobStorageOptions options = null, Dictionary<string, string> properties = null);
         IIndexedBlob ImportBlob(string fileKey, CloudBlockBlob sourceBlob, IndexedBlobStorageOptions options = null, Dictionary<string, string> properties = null);
-        IReadonlyIndexedBlob GetIndexedBlob(string fileKey);
+        IReadonlyIndexedBlob GetIndexedBlob(string fileKey, bool throwOnNotFound = false);
         IEnumerable<TaggedIndexedBlob> Find(string tag);
         void Delete();
     }

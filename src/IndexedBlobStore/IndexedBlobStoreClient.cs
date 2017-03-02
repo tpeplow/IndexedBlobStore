@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Table;
 
@@ -51,9 +53,9 @@ namespace IndexedBlobStore
         {
             options = EnsureOptions(options);
             
-            var indexRecord = LookupIndexedBlob(fileKey);
+            var result = LookupIndexedBlob(fileKey);
 
-            return new UploadableIndexedBlob(fileName, stream, fileKey, indexRecord, options, _store, properties);
+            return new UploadableIndexedBlob(fileName, stream, fileKey, result.Entity, options, _store, properties);
         }
 
         public IIndexedBlob ImportBlob(CloudBlockBlob sourceBlob, IndexedBlobStorageOptions options = null, Dictionary<string, string> properties = null)
@@ -68,28 +70,33 @@ namespace IndexedBlobStore
         {
             options = EnsureOptions(options);
             
-            var indexRecord = LookupIndexedBlob(fileKey);
+            var result = LookupIndexedBlob(fileKey);
 
             if (options.UseBlobCopyAccrossStorageAccounts || sourceBlob.ServiceClient.Credentials.AccountName == _store.Container.ServiceClient.Credentials.AccountName)
             {
-                return new CopyableIndexedBlob(sourceBlob, fileKey, indexRecord, options, _store, properties);
+                return new CopyableIndexedBlob(sourceBlob, fileKey, result.Entity, options, _store, properties);
             }
 
-            return new DownloadUploadImportBlob(sourceBlob, fileKey, indexRecord, options, _store, properties);
+            return new DownloadUploadImportBlob(sourceBlob, fileKey, result.Entity, options, _store, properties);
         }
 
-        public IReadonlyIndexedBlob GetIndexedBlob(string fileKey)
+        public IReadonlyIndexedBlob GetIndexedBlob(string fileKey, bool throwOnNotFound = false)
         {
-            var entity = LookupIndexedBlob(fileKey);
-            if (entity == null)
-                return null;
-            return new CloudReadonlyIndexedBlob(entity, _store, _defaultReadOptions);
+            var result = LookupIndexedBlob(fileKey);
+            if (result.Entity != null && result.StatusCode == 200) return new CloudReadonlyIndexedBlob(result.Entity, _store, _defaultReadOptions);
+
+            if (throwOnNotFound) throw new IndexedBlobNotFoundException($"Indexed blob '{fileKey}' could not be found in the index. Code: {result.StatusCode}.");
+            return null;
         }
 
-        IndexedBlobEntity LookupIndexedBlob(string key)
+        IndexedBlobLookupResult LookupIndexedBlob(string key)
         {
             var result = _store.Table.Execute(TableOperation.Retrieve<IndexedBlobEntity>(key, key));
-            return (IndexedBlobEntity)result.Result;
+            return new IndexedBlobLookupResult
+            {
+                Entity = (IndexedBlobEntity) result.Result,
+                StatusCode = result.HttpStatusCode
+            };
         }
 
         IndexedBlobStorageOptions EnsureOptions(IndexedBlobStorageOptions options)
@@ -102,6 +109,23 @@ namespace IndexedBlobStore
             var query = new TableQuery<IndexedBlobTagEntity>().Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, tag));
             var entities = _store.Table.ExecuteQuery(query);
             return entities.Select(x => new TaggedIndexedBlob(new CloudReadonlyIndexedBlob(x, _store, _defaultReadOptions), x.PartitionKey));
+        }
+    }
+
+    internal class IndexedBlobLookupResult
+    {
+        public IndexedBlobEntity Entity { get; set; }
+        public int StatusCode { get; set; }
+    }
+
+    public class IndexedBlobNotFoundException : Exception
+    {
+        public IndexedBlobNotFoundException()
+        {
+        }
+
+        public IndexedBlobNotFoundException(string message) : base(message)
+        {
         }
     }
 }
